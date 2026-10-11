@@ -1,0 +1,76 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+
+// Helper tests for parseCurrencyToCents and form validation logic
+function parseCurrencyToCents(input) {
+  if (typeof input === 'number') {
+    return Math.round(input * 100);
+  }
+  if (!input) return 0;
+  let cleaned = input.replace(/[^\d,-]/g, '').replace(',', '.');
+  const parsed = parseFloat(cleaned);
+  return isNaN(parsed) ? 0 : Math.round(parsed * 100);
+}
+
+function validateTransactionInput({ amountStr, description }) {
+  const amountCents = parseCurrencyToCents(amountStr);
+  if (amountCents <= 0) {
+    return { valid: false, error: 'Valor deve ser maior que zero' };
+  }
+  if (!description || description.trim().length === 0) {
+    return { valid: false, error: 'Descrição é obrigatória' };
+  }
+  return { valid: true, amountCents };
+}
+
+function validateBillInput({ amountStr, description, dueDate }) {
+  const amountCents = parseCurrencyToCents(amountStr);
+  if (amountCents <= 0) {
+    return { valid: false, error: 'Valor deve ser maior que zero' };
+  }
+  if (!description || description.trim().length === 0) {
+    return { valid: false, error: 'Descrição é obrigatória' };
+  }
+  if (!dueDate || !/^\d{4}-\d{2}-\d{2}$/.test(dueDate)) {
+    return { valid: false, error: 'Data de vencimento inválida' };
+  }
+  return { valid: true, amountCents };
+}
+
+test('Validation: Currency parsing with Brazilian comma and dots', () => {
+  assert.equal(parseCurrencyToCents('1.234,56'), 123456);
+  assert.equal(parseCurrencyToCents('1234,56'), 123456);
+  assert.equal(parseCurrencyToCents('50,00'), 5000);
+  assert.equal(parseCurrencyToCents('0,99'), 99);
+  assert.equal(parseCurrencyToCents('0'), 0);
+  assert.equal(parseCurrencyToCents(''), 0);
+});
+
+test('Validation: Transaction input validator rules', () => {
+  const invalidAmount = validateTransactionInput({ amountStr: '0,00', description: 'Mercado' });
+  assert.equal(invalidAmount.valid, false);
+
+  const missingDesc = validateTransactionInput({ amountStr: '150,00', description: '  ' });
+  assert.equal(missingDesc.valid, false);
+
+  const validTx = validateTransactionInput({ amountStr: '85,50', description: 'Almoço' });
+  assert.equal(validTx.valid, true);
+  assert.equal(validTx.amountCents, 8550);
+});
+
+test('Validation: Financial bill validator rules', () => {
+  const invalidDate = validateBillInput({
+    amountStr: '100,00',
+    description: 'Internet',
+    dueDate: 'invalid',
+  });
+  assert.equal(invalidDate.valid, false);
+
+  const validBill = validateBillInput({
+    amountStr: '250,00',
+    description: 'Conta de Luz',
+    dueDate: '2026-10-25',
+  });
+  assert.equal(validBill.valid, true);
+  assert.equal(validBill.amountCents, 25000);
+});
