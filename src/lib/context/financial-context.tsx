@@ -12,6 +12,8 @@ import {
 import { StorageRepository } from '../storage';
 import { calculateFinancialOverview } from '../financial-engine';
 import { useAuth } from '../auth/auth-context';
+import { SupabaseDb } from '../supabase/db';
+import { isSupabaseConfigured } from '../supabase/client';
 
 interface FinancialContextType {
   settings: FinancialSettings | null;
@@ -21,7 +23,7 @@ interface FinancialContextType {
   categories: Category[];
   overview: FinancialOverview;
   isLoading: boolean;
-  refreshData: () => void;
+  refreshData: () => Promise<void>;
   // Transactions
   addTransaction: (tx: Omit<Transaction, 'id' | 'userId' | 'createdAt'>) => Transaction;
   updateTransaction: (id: string, updates: Partial<Transaction>) => void;
@@ -52,7 +54,7 @@ export function FinancialProvider({ children }: { children: React.ReactNode }) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const refreshData = useCallback(() => {
+  const refreshData = useCallback(async () => {
     if (!user) {
       setSettings(null);
       setTransactions([]);
@@ -63,11 +65,31 @@ export function FinancialProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    const loadedSettings = StorageRepository.getSettings(user.id);
-    const loadedTx = StorageRepository.getTransactions(user.id);
-    const loadedBills = StorageRepository.getBills(user.id);
-    const loadedGoals = StorageRepository.getGoals(user.id);
+    // 1. Instant local load
+    let loadedSettings = StorageRepository.getSettings(user.id);
+    let loadedTx = StorageRepository.getTransactions(user.id);
+    let loadedBills = StorageRepository.getBills(user.id);
+    let loadedGoals = StorageRepository.getGoals(user.id);
     const loadedCats = StorageRepository.getAllCategories(user.id);
+
+    // 2. If Supabase is configured, load from PostgreSQL tables and update cache
+    if (isSupabaseConfigured && user.id !== 'demo-user') {
+      try {
+        const [cloudSettings, cloudTx, cloudBills, cloudGoals] = await Promise.all([
+          SupabaseDb.getSettings(user.id),
+          SupabaseDb.getTransactions(user.id),
+          SupabaseDb.getBills(user.id),
+          SupabaseDb.getGoals(user.id),
+        ]);
+
+        if (cloudSettings) loadedSettings = cloudSettings;
+        if (cloudTx && cloudTx.length > 0) loadedTx = cloudTx;
+        if (cloudBills && cloudBills.length > 0) loadedBills = cloudBills;
+        if (cloudGoals && cloudGoals.length > 0) loadedGoals = cloudGoals;
+      } catch (err) {
+        console.warn('Supabase fetch failed, continuing with local store', err);
+      }
+    }
 
     setSettings(loadedSettings);
     setTransactions(loadedTx);
@@ -116,6 +138,9 @@ export function FinancialProvider({ children }: { children: React.ReactNode }) {
   const addTransaction = (tx: Omit<Transaction, 'id' | 'userId' | 'createdAt'>) => {
     if (!user) throw new Error('Usuário não autenticado');
     const created = StorageRepository.addTransaction(user.id, tx);
+    if (isSupabaseConfigured && user.id !== 'demo-user') {
+      SupabaseDb.addTransaction(created).catch(console.error);
+    }
     refreshData();
     return created;
   };
@@ -129,6 +154,9 @@ export function FinancialProvider({ children }: { children: React.ReactNode }) {
   const deleteTransaction = (id: string) => {
     if (!user) return;
     StorageRepository.deleteTransaction(user.id, id);
+    if (isSupabaseConfigured && user.id !== 'demo-user') {
+      SupabaseDb.deleteTransaction(id).catch(console.error);
+    }
     refreshData();
   };
 
@@ -136,6 +164,9 @@ export function FinancialProvider({ children }: { children: React.ReactNode }) {
   const addBill = (bill: Omit<FinancialBill, 'id' | 'userId' | 'createdAt'>) => {
     if (!user) throw new Error('Usuário não autenticado');
     const created = StorageRepository.addBill(user.id, bill);
+    if (isSupabaseConfigured && user.id !== 'demo-user') {
+      SupabaseDb.addBill(created).catch(console.error);
+    }
     refreshData();
     return created;
   };
@@ -143,12 +174,18 @@ export function FinancialProvider({ children }: { children: React.ReactNode }) {
   const updateBill = (id: string, updates: Partial<FinancialBill>) => {
     if (!user) return;
     StorageRepository.updateBill(user.id, id, updates);
+    if (isSupabaseConfigured && user.id !== 'demo-user') {
+      SupabaseDb.updateBill(id, updates).catch(console.error);
+    }
     refreshData();
   };
 
   const deleteBill = (id: string) => {
     if (!user) return;
     StorageRepository.deleteBill(user.id, id);
+    if (isSupabaseConfigured && user.id !== 'demo-user') {
+      SupabaseDb.deleteBill(id).catch(console.error);
+    }
     refreshData();
   };
 
@@ -156,6 +193,14 @@ export function FinancialProvider({ children }: { children: React.ReactNode }) {
     if (!user) return null;
     const result = StorageRepository.markBillAsPaid(user.id, billId);
     if (result) {
+      if (isSupabaseConfigured && user.id !== 'demo-user') {
+        SupabaseDb.updateBill(billId, {
+          status: result.bill.status,
+          paidAt: result.bill.paidAt,
+          paidTransactionId: result.bill.paidTransactionId,
+        }).catch(console.error);
+        SupabaseDb.addTransaction(result.transaction).catch(console.error);
+      }
       refreshData();
     }
     return result;
@@ -165,6 +210,9 @@ export function FinancialProvider({ children }: { children: React.ReactNode }) {
   const addGoal = (goal: Omit<FinancialGoal, 'id' | 'userId' | 'createdAt'>) => {
     if (!user) throw new Error('Usuário não autenticado');
     const created = StorageRepository.addGoal(user.id, goal);
+    if (isSupabaseConfigured && user.id !== 'demo-user') {
+      SupabaseDb.addGoal(created).catch(console.error);
+    }
     refreshData();
     return created;
   };
@@ -172,19 +220,28 @@ export function FinancialProvider({ children }: { children: React.ReactNode }) {
   const updateGoal = (id: string, updates: Partial<FinancialGoal>) => {
     if (!user) return;
     StorageRepository.updateGoal(user.id, id, updates);
+    if (isSupabaseConfigured && user.id !== 'demo-user') {
+      SupabaseDb.updateGoal(id, updates).catch(console.error);
+    }
     refreshData();
   };
 
   const deleteGoal = (id: string) => {
     if (!user) return;
     StorageRepository.deleteGoal(user.id, id);
+    if (isSupabaseConfigured && user.id !== 'demo-user') {
+      SupabaseDb.deleteGoal(id).catch(console.error);
+    }
     refreshData();
   };
 
   // Settings
   const updateSettings = (updates: Partial<FinancialSettings>) => {
     if (!user) return;
-    StorageRepository.updateSettings(user.id, updates);
+    const updated = StorageRepository.updateSettings(user.id, updates);
+    if (isSupabaseConfigured && user.id !== 'demo-user') {
+      SupabaseDb.saveSettings(updated).catch(console.error);
+    }
     refreshData();
   };
 

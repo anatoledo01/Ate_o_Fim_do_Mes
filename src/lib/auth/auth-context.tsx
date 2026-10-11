@@ -4,6 +4,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { UserProfile, FinancialSettings } from '../types';
 import { StorageRepository, createDemoUserData, createInitialUserData } from '../storage';
 import { supabase, isSupabaseConfigured } from '../supabase/client';
+import { SupabaseDb } from '../supabase/db';
 
 interface AuthContextType {
   user: UserProfile | null;
@@ -182,14 +183,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const updateUserProfile = (updates: Partial<UserProfile>) => {
     if (!user) return;
     const updated = StorageRepository.updateProfile(user.id, updates);
+    if (isSupabaseConfigured && user.id !== 'demo-user') {
+      SupabaseDb.updateProfile(user.id, updates).catch(console.error);
+    }
     setUser(updated);
     localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(updated));
   };
 
   const completeOnboarding = (settingsUpdates: Partial<FinancialSettings>) => {
     if (!user) return;
-    StorageRepository.updateSettings(user.id, settingsUpdates);
+    const updatedSettings = StorageRepository.updateSettings(user.id, settingsUpdates);
     const updatedProfile = StorageRepository.updateProfile(user.id, { isOnboarded: true });
+    if (isSupabaseConfigured && user.id !== 'demo-user') {
+      SupabaseDb.updateProfile(user.id, { isOnboarded: true }).catch(console.error);
+      SupabaseDb.saveSettings(updatedSettings).catch(console.error);
+    }
     setUser(updatedProfile);
     localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(updatedProfile));
   };
