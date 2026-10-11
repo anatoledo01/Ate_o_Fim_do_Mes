@@ -93,6 +93,11 @@ export async function sendBrevoEmail({
  */
 export function buildWelcomeEmailHtml(name: string): string {
   const safeName = name ? name.trim() : 'Membro';
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL
+    || (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : null)
+    || 'https://ateofimdomes.vercel.app';
+  const loginUrl = `${baseUrl}/login`;
+
   return `
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -191,7 +196,7 @@ export function buildWelcomeEmailHtml(name: string): string {
 
               <!-- CTA Button -->
               <div style="text-align: center; margin: 34px 0 10px 0;">
-                <a href="https://ate-o-fim-do-mes.vercel.app/login" style="display: inline-block; background: linear-gradient(135deg, #22ffb4 0%, #1bd697 100%); color: #04110c; padding: 15px 36px; border-radius: 16px; font-weight: 800; font-size: 14px; text-decoration: none; font-family: monospace; letter-spacing: 0.5px; box-shadow: 0 0 25px rgba(34, 255, 180, 0.4);">
+                <a href="${loginUrl}" style="display: inline-block; background: linear-gradient(135deg, #22ffb4 0%, #1bd697 100%); color: #04110c; padding: 15px 36px; border-radius: 16px; font-weight: 800; font-size: 14px; text-decoration: none; font-family: monospace; letter-spacing: 0.5px; box-shadow: 0 0 25px rgba(34, 255, 180, 0.4);">
                   ACESSAR MEU PAINEL AGORA &rarr;
                 </a>
               </div>
