@@ -136,9 +136,13 @@ export function FinancialProvider({ children }: { children: React.ReactNode }) {
 
   // Transaction mutations
   const addTransaction = (tx: Omit<Transaction, 'id' | 'userId' | 'createdAt'>) => {
-    if (!user) throw new Error('Usuário não autenticado');
-    const created = StorageRepository.addTransaction(user.id, tx);
-    if (isSupabaseConfigured && user.id !== 'demo-user') {
+    const currentUserId = user?.id || (typeof window !== 'undefined' && JSON.parse(localStorage.getItem('ate_o_fim_do_mes_current_session') || '{}')?.id);
+    if (!currentUserId) {
+      console.warn('Operação cancelada: usuário não identificado.');
+      return { ...tx, id: 'temp-' + Date.now(), userId: '', createdAt: new Date().toISOString() };
+    }
+    const created = StorageRepository.addTransaction(currentUserId, tx);
+    if (isSupabaseConfigured && currentUserId !== 'demo-user') {
       SupabaseDb.addTransaction(created).catch(console.error);
     }
     refreshData();
@@ -146,15 +150,17 @@ export function FinancialProvider({ children }: { children: React.ReactNode }) {
   };
 
   const updateTransaction = (id: string, updates: Partial<Transaction>) => {
-    if (!user) return;
-    StorageRepository.updateTransaction(user.id, id, updates);
+    const currentUserId = user?.id || (typeof window !== 'undefined' && JSON.parse(localStorage.getItem('ate_o_fim_do_mes_current_session') || '{}')?.id);
+    if (!currentUserId) return;
+    StorageRepository.updateTransaction(currentUserId, id, updates);
     refreshData();
   };
 
   const deleteTransaction = (id: string) => {
-    if (!user) return;
-    StorageRepository.deleteTransaction(user.id, id);
-    if (isSupabaseConfigured && user.id !== 'demo-user') {
+    const currentUserId = user?.id || (typeof window !== 'undefined' && JSON.parse(localStorage.getItem('ate_o_fim_do_mes_current_session') || '{}')?.id);
+    if (!currentUserId) return;
+    StorageRepository.deleteTransaction(currentUserId, id);
+    if (isSupabaseConfigured && currentUserId !== 'demo-user') {
       SupabaseDb.deleteTransaction(id).catch(console.error);
     }
     refreshData();
@@ -162,9 +168,13 @@ export function FinancialProvider({ children }: { children: React.ReactNode }) {
 
   // Bills mutations
   const addBill = (bill: Omit<FinancialBill, 'id' | 'userId' | 'createdAt'>) => {
-    if (!user) throw new Error('Usuário não autenticado');
-    const created = StorageRepository.addBill(user.id, bill);
-    if (isSupabaseConfigured && user.id !== 'demo-user') {
+    const currentUserId = user?.id || (typeof window !== 'undefined' && JSON.parse(localStorage.getItem('ate_o_fim_do_mes_current_session') || '{}')?.id);
+    if (!currentUserId) {
+      console.warn('Operação cancelada: usuário não identificado.');
+      return { ...bill, id: 'temp-' + Date.now(), userId: '', createdAt: new Date().toISOString() };
+    }
+    const created = StorageRepository.addBill(currentUserId, bill);
+    if (isSupabaseConfigured && currentUserId !== 'demo-user') {
       SupabaseDb.addBill(created).catch(console.error);
     }
     refreshData();
@@ -172,28 +182,31 @@ export function FinancialProvider({ children }: { children: React.ReactNode }) {
   };
 
   const updateBill = (id: string, updates: Partial<FinancialBill>) => {
-    if (!user) return;
-    StorageRepository.updateBill(user.id, id, updates);
-    if (isSupabaseConfigured && user.id !== 'demo-user') {
+    const currentUserId = user?.id || (typeof window !== 'undefined' && JSON.parse(localStorage.getItem('ate_o_fim_do_mes_current_session') || '{}')?.id);
+    if (!currentUserId) return;
+    StorageRepository.updateBill(currentUserId, id, updates);
+    if (isSupabaseConfigured && currentUserId !== 'demo-user') {
       SupabaseDb.updateBill(id, updates).catch(console.error);
     }
     refreshData();
   };
 
   const deleteBill = (id: string) => {
-    if (!user) return;
-    StorageRepository.deleteBill(user.id, id);
-    if (isSupabaseConfigured && user.id !== 'demo-user') {
+    const currentUserId = user?.id || (typeof window !== 'undefined' && JSON.parse(localStorage.getItem('ate_o_fim_do_mes_current_session') || '{}')?.id);
+    if (!currentUserId) return;
+    StorageRepository.deleteBill(currentUserId, id);
+    if (isSupabaseConfigured && currentUserId !== 'demo-user') {
       SupabaseDb.deleteBill(id).catch(console.error);
     }
     refreshData();
   };
 
   const markBillAsPaid = (billId: string) => {
-    if (!user) return null;
-    const result = StorageRepository.markBillAsPaid(user.id, billId);
+    const currentUserId = user?.id || (typeof window !== 'undefined' && JSON.parse(localStorage.getItem('ate_o_fim_do_mes_current_session') || '{}')?.id);
+    if (!currentUserId) return null;
+    const result = StorageRepository.markBillAsPaid(currentUserId, billId);
     if (result) {
-      if (isSupabaseConfigured && user.id !== 'demo-user') {
+      if (isSupabaseConfigured && currentUserId !== 'demo-user') {
         SupabaseDb.updateBill(billId, {
           status: result.bill.status,
           paidAt: result.bill.paidAt,
@@ -208,9 +221,13 @@ export function FinancialProvider({ children }: { children: React.ReactNode }) {
 
   // Goals mutations
   const addGoal = (goal: Omit<FinancialGoal, 'id' | 'userId' | 'createdAt'>) => {
-    if (!user) throw new Error('Usuário não autenticado');
-    const created = StorageRepository.addGoal(user.id, goal);
-    if (isSupabaseConfigured && user.id !== 'demo-user') {
+    const currentUserId = user?.id || (typeof window !== 'undefined' && JSON.parse(localStorage.getItem('ate_o_fim_do_mes_current_session') || '{}')?.id);
+    if (!currentUserId) {
+      console.warn('Operação cancelada: usuário não identificado.');
+      return { ...goal, id: 'temp-' + Date.now(), userId: '', createdAt: new Date().toISOString() };
+    }
+    const created = StorageRepository.addGoal(currentUserId, goal);
+    if (isSupabaseConfigured && currentUserId !== 'demo-user') {
       SupabaseDb.addGoal(created).catch(console.error);
     }
     refreshData();

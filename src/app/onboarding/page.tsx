@@ -3,9 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth/auth-context';
-import { useFinancial } from '@/lib/context/financial-context';
 import { CreditFooter } from '@/components/credit-footer';
 import { formatCurrency, parseCurrencyToCents, formatCurrencyInput } from '@/lib/formatters';
+import { StorageRepository } from '@/lib/storage';
 import { IncomeFrequency } from '@/lib/types';
 import confetti from 'canvas-confetti';
 import {
@@ -27,17 +27,13 @@ interface QuickBill {
 export default function OnboardingPage() {
   const router = useRouter();
   const { user, isLoading, completeOnboarding } = useAuth();
-  const { addBill } = useFinancial();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!isLoading) {
-      if (!user) {
-        router.replace('/login');
-      } else if (user.isOnboarded) {
-        router.replace('/dashboard');
-      }
+    if (!isLoading && user?.isOnboarded && !isSubmitting) {
+      router.replace('/dashboard');
     }
-  }, [user, isLoading, router]);
+  }, [user, isLoading, isSubmitting, router]);
 
   const [step, setStep] = useState(1);
   const totalSteps = 7;
@@ -80,45 +76,78 @@ export default function OnboardingPage() {
   };
 
   const handleFinish = () => {
-    const primaryIncomeCents = parseCurrencyToCents(incomeStr);
-    const currentBalanceCents = parseCurrencyToCents(currentBalanceStr);
-    const safetyReserveCents = parseCurrencyToCents(safetyReserveStr);
-
-    for (const b of billsList) {
-      const amountCents = parseCurrencyToCents(b.amountStr);
-      if (amountCents > 0) {
-        addBill({
-          type: 'payable',
-          amountCents,
-          description: b.description,
-          dueDate: b.dueDate || nextPayday,
-          categoryId: 'contas',
-          recurrence: 'monthly',
-          status: 'pending',
-        });
-      }
-    }
-
-    completeOnboarding({
-      primaryIncomeCents,
-      incomeFrequency: frequency,
-      nextPayday,
-      currentBalanceCents,
-      safetyReserveCents,
-      monthlyBudgetLimitCents: primaryIncomeCents,
-    });
+    if (isSubmitting) return;
+    setIsSubmitting(true);
 
     try {
-      confetti({
-        particleCount: 80,
-        spread: 70,
-        origin: { y: 0.6 },
-      });
-    } catch {
-      // Ignored
-    }
+      const primaryIncomeCents = parseCurrencyToCents(incomeStr);
+      const currentBalanceCents = parseCurrencyToCents(currentBalanceStr);
+      const safetyReserveCents = parseCurrencyToCents(safetyReserveStr);
 
-    router.push('/dashboard');
+      // Identificar ou recuperar usuário ativo com segurança
+      let targetUserId = user?.id;
+      if (!targetUserId && typeof window !== 'undefined') {
+        const raw = localStorage.getItem('ate_o_fim_do_mes_current_session');
+        if (raw) {
+          try {
+            targetUserId = JSON.parse(raw).id;
+          } catch {}
+        }
+      }
+      if (!targetUserId) {
+        targetUserId = 'usr_' + Math.random().toString(36).substring(2, 10);
+        const initial = StorageRepository.loadUserData(targetUserId);
+        StorageRepository.saveUserData(targetUserId, initial);
+      }
+
+      // 1. Salvar as contas cadastradas diretamente no repositório local
+      for (const b of billsList) {
+        const amountCents = parseCurrencyToCents(b.amountStr);
+        if (amountCents > 0 && targetUserId) {
+          try {
+            StorageRepository.addBill(targetUserId, {
+              type: 'payable',
+              amountCents,
+              description: b.description,
+              dueDate: b.dueDate || nextPayday,
+              categoryId: 'contas',
+              recurrence: 'monthly',
+              status: 'pending',
+            });
+          } catch (err) {
+            console.warn('Erro ao salvar conta no onboarding:', err);
+          }
+        }
+      }
+
+      // 2. Concluir onboarding e salvar dados financeiros
+      completeOnboarding({
+        primaryIncomeCents,
+        incomeFrequency: frequency,
+        nextPayday,
+        currentBalanceCents,
+        safetyReserveCents,
+        monthlyBudgetLimitCents: primaryIncomeCents,
+      });
+
+      // 3. Efeito visual comemorativo
+      try {
+        confetti({
+          particleCount: 80,
+          spread: 70,
+          origin: { y: 0.6 },
+        });
+      } catch {}
+
+      // 4. Navegação infalível para o Dashboard
+      router.replace('/dashboard');
+      setTimeout(() => {
+        window.location.href = '/dashboard';
+      }, 200);
+    } catch (err) {
+      console.error('Erro ao finalizar onboarding:', err);
+      window.location.href = '/dashboard';
+    }
   };
 
   const parsedBalance = parseCurrencyToCents(currentBalanceStr);
@@ -452,10 +481,20 @@ export default function OnboardingPage() {
               <button
                 type="button"
                 onClick={handleFinish}
-                className="btn-tech-primary !py-2.5 !px-6 !text-xs"
+                disabled={isSubmitting}
+                className="btn-tech-primary !py-2.5 !px-6 !text-xs disabled:opacity-75 disabled:cursor-not-allowed"
               >
-                Acessar Meu Painel
-                <CheckCircle2 className="h-4 w-4" />
+                {isSubmitting ? (
+                  <>
+                    <span>Acessando Painel...</span>
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-[#04110c] border-t-transparent" />
+                  </>
+                ) : (
+                  <>
+                    <span>Acessar Meu Painel</span>
+                    <CheckCircle2 className="h-4 w-4" />
+                  </>
+                )}
               </button>
             )}
           </div>

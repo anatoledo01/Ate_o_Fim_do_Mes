@@ -269,11 +269,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const completeOnboarding = (settingsUpdates: Partial<FinancialSettings>) => {
-    if (!user) return;
-    const updatedSettings = StorageRepository.updateSettings(user.id, settingsUpdates);
-    const updatedProfile = StorageRepository.updateProfile(user.id, { isOnboarded: true });
-    if (isSupabaseConfigured && user.id !== 'demo-user') {
-      SupabaseDb.updateProfile(user.id, { isOnboarded: true }).catch(console.error);
+    let currentUser = user;
+    if (!currentUser && typeof window !== 'undefined') {
+      const raw = localStorage.getItem(CURRENT_USER_KEY);
+      if (raw) {
+        try {
+          currentUser = JSON.parse(raw);
+        } catch {}
+      }
+    }
+    if (!currentUser) {
+      const guestId = 'usr_' + Math.random().toString(36).substring(2, 10);
+      const initial = createInitialUserData(guestId, 'meu.acesso@local.app', 'Você');
+      StorageRepository.saveUserData(guestId, initial);
+      currentUser = initial.profile;
+    }
+
+    const updatedSettings = StorageRepository.updateSettings(currentUser.id, settingsUpdates);
+    const updatedProfile = StorageRepository.updateProfile(currentUser.id, { isOnboarded: true });
+    if (isSupabaseConfigured && currentUser.id !== 'demo-user') {
+      SupabaseDb.updateProfile(currentUser.id, { isOnboarded: true }).catch(console.error);
       SupabaseDb.saveSettings(updatedSettings).catch(console.error);
     }
     setUser(updatedProfile);
