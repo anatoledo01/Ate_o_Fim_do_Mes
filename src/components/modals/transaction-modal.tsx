@@ -62,12 +62,6 @@ export function TransactionModal({ isOpen, onClose, defaultType = 'expense' }: T
         {/* Header */}
         <div className="flex items-center justify-between pb-4 border-b border-white/10">
           <div>
-            <div className="tech-pill mb-1 inline-flex">
-              <span className="dot-chip" />
-              <span className="text-[10px] font-mono tracking-wider uppercase text-[#22ffb4]">
-                {type === 'expense' ? 'Fluxo de Saída' : 'Fluxo de Entrada'}
-              </span>
-            </div>
             <h2 className="text-base sm:text-lg font-bold text-white font-sora">
               {type === 'expense' ? 'Registrar Despesa' : 'Registrar Receita'}
             </h2>

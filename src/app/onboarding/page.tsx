@@ -13,10 +13,6 @@ import {
   ArrowRight,
   ArrowLeft,
   CheckCircle2,
-  Calendar,
-  Shield,
-  Receipt,
-  DollarSign,
   Plus,
   Trash2,
   Sparkles,
@@ -174,10 +170,6 @@ export default function OnboardingPage() {
           {/* STEP 2: Renda Principal */}
           {step === 2 && (
             <div>
-              <div className="tech-pill !py-0.5 !px-2.5 !text-[11px] mb-2 text-[#22ffb4]">
-                <DollarSign className="h-3.5 w-3.5" />
-                <span>Renda e Entradas</span>
-              </div>
               <h2 className="text-xl font-bold text-white">
                 Qual é a sua renda média principal?
               </h2>
@@ -210,10 +202,6 @@ export default function OnboardingPage() {
           {/* STEP 3: Frequência e Próxima Data de Recebimento */}
           {step === 3 && (
             <div>
-              <div className="tech-pill !py-0.5 !px-2.5 !text-[11px] mb-2 text-[#5b8cff]">
-                <Calendar className="h-3.5 w-3.5" />
-                <span>Ciclo Financeiro</span>
-              </div>
               <h2 className="text-xl font-bold text-white">
                 Com que frequência e quando você recebe?
               </h2>
@@ -263,10 +251,6 @@ export default function OnboardingPage() {
           {/* STEP 4: Saldo Inicial Disponível */}
           {step === 4 && (
             <div>
-              <div className="tech-pill !py-0.5 !px-2.5 !text-[11px] mb-2 text-[#22ffb4]">
-                <Wallet className="h-3.5 w-3.5" />
-                <span>Saldo em Conta</span>
-              </div>
               <h2 className="text-xl font-bold text-white">
                 Quanto você tem em conta hoje?
               </h2>
@@ -299,10 +283,6 @@ export default function OnboardingPage() {
           {/* STEP 5: Contas Fixas e Compromissos */}
           {step === 5 && (
             <div>
-              <div className="tech-pill !py-0.5 !px-2.5 !text-[11px] mb-2 text-[#ff4fd8]">
-                <Receipt className="h-3.5 w-3.5" />
-                <span>Compromissos</span>
-              </div>
               <h2 className="text-xl font-bold text-white">
                 Contas que ainda vão vencer
               </h2>
@@ -363,10 +343,6 @@ export default function OnboardingPage() {
           {/* STEP 6: Reserva de Segurança */}
           {step === 6 && (
             <div>
-              <div className="tech-pill !py-0.5 !px-2.5 !text-[11px] mb-2 text-[#c058ff]">
-                <Shield className="h-3.5 w-3.5" />
-                <span>Colchão de Proteção</span>
-              </div>
               <h2 className="text-xl font-bold text-white">
                 Deseja definir uma reserva de segurança?
               </h2>
@@ -399,10 +375,6 @@ export default function OnboardingPage() {
           {/* STEP 7: Resumo antes de concluir */}
           {step === 7 && (
             <div>
-              <div className="tech-pill !py-0.5 !px-2.5 !text-[11px] mb-2 text-[#22ffb4]">
-                <CheckCircle2 className="h-3.5 w-3.5" />
-                <span>Tudo Pronto!</span>
-              </div>
               <h2 className="text-xl font-bold text-white">
                 Resumo do seu planejamento
               </h2>

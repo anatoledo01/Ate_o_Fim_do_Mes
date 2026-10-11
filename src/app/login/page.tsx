@@ -55,10 +55,6 @@ export default function LoginPage() {
       <main className="flex-1 flex items-center justify-center p-4 sm:p-6">
         <div className="w-full max-w-md rounded-3xl border border-white/10 bg-[#0e1026]/90 p-7 sm:p-9 shadow-[0_30px_90px_rgba(0,0,0,0.8)] backdrop-blur-2xl beam-card">
           <div className="text-center">
-            <div className="tech-pill !py-1 !px-3 !text-xs mb-3">
-              <span className="tech-led" />
-              <span>LOGIN SEGURO</span>
-            </div>
             <h1 className="text-2xl font-extrabold tracking-tight text-white">
               Acesse sua conta
             </h1>

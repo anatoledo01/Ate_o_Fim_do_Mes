@@ -33,10 +33,6 @@ export default function MetasPage() {
       {/* Top Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <div className="tech-pill mb-2 inline-flex">
-            <span className="dot-chip" />
-            <span className="text-[11px] font-mono tracking-wider uppercase text-[#c058ff]">Planejamento Estratégico</span>
-          </div>
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white font-sora flex items-center gap-2">
             <Target className="h-6 w-6 text-[#c058ff]" />
             Planejamento e Metas

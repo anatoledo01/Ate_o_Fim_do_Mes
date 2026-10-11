@@ -61,12 +61,6 @@ export function GoalModal({ isOpen, onClose }: GoalModalProps) {
           <div className="flex items-center gap-2">
             <Target className="h-5 w-5 text-[#ffd000]" />
             <div>
-              <div className="tech-pill mb-1 inline-flex">
-                <span className="dot-chip" />
-                <span className="text-[10px] font-mono tracking-wider uppercase text-[#ffd000]">
-                  Alocação de Longo Prazo
-                </span>
-              </div>
               <h2 className="text-base sm:text-lg font-bold text-white font-sora">
                 Nova Meta Financeira
               </h2>

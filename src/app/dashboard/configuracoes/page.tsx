@@ -103,10 +103,6 @@ export default function ConfiguracoesPage() {
     <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6 space-y-6">
       {/* Header */}
       <div>
-        <div className="tech-pill mb-2 inline-flex">
-          <span className="dot-chip" />
-          <span className="text-[11px] font-mono tracking-wider uppercase text-[#22ffb4]">Painel de Controle</span>
-        </div>
         <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white font-sora flex items-center gap-2">
           <Settings className="h-6 w-6 text-[#22ffb4]" />
           Configurações

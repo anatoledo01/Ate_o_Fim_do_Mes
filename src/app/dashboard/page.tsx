@@ -67,10 +67,6 @@ export default function DashboardPage() {
       {/* 1. Header with greeting and payday status */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <div className="tech-pill !py-1 !px-3 !text-xs mb-2">
-            <span className="tech-led" />
-            <span>PAINEL FINANCEIRO DIÁRIO</span>
-          </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
             Olá, {user?.displayName || 'você'}
           </h1>

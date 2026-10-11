@@ -62,12 +62,6 @@ export function BillModal({ isOpen, onClose }: BillModalProps) {
           <div className="flex items-center gap-2">
             <Receipt className="h-5 w-5 text-[#5b8cff]" />
             <div>
-              <div className="tech-pill mb-1 inline-flex">
-                <span className="dot-chip" />
-                <span className="text-[10px] font-mono tracking-wider uppercase text-[#5b8cff]">
-                  Compromisso Futuro
-                </span>
-              </div>
               <h2 className="text-base sm:text-lg font-bold text-white font-sora">
                 Nova Conta ou Compromisso
               </h2>
