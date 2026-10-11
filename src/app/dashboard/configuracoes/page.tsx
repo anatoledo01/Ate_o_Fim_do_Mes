@@ -175,7 +175,7 @@ export default function ConfiguracoesPage() {
         <form onSubmit={handleSaveFinancial} className="mt-4 space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold font-mono text-slate-400 mb-1.5">
+              <label className="block text-xs font-semibold font-mono text-slate-400 mb-2">
                 Renda Principal Líquida (R$)
               </label>
               <input
@@ -184,18 +184,18 @@ export default function ConfiguracoesPage() {
                 value={incomeStr}
                 onChange={(e) => setIncomeStr(formatCurrencyInput(e.target.value))}
                 placeholder="Ex: 5.000,00"
-                className="w-full rounded-xl border border-white/10 bg-[#07081a] py-2.5 px-3.5 text-xs font-mono text-white placeholder:text-slate-500 focus:border-[#22ffb4] focus:outline-hidden transition"
+                className="w-full h-11 rounded-xl border border-white/10 bg-[#07081a] px-3.5 text-xs font-mono text-white placeholder:text-slate-500 focus:border-[#22ffb4] focus:outline-hidden transition"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold font-mono text-slate-400 mb-1.5">
+              <label className="block text-xs font-semibold font-mono text-slate-400 mb-2">
                 Frequência de Recebimento
               </label>
               <select
                 value={frequency}
                 onChange={(e) => setFrequency(e.target.value as IncomeFrequency)}
-                className="w-full rounded-xl border border-white/10 bg-[#07081a] py-2.5 px-3.5 text-xs text-white focus:border-[#22ffb4] focus:outline-hidden transition"
+                className="w-full h-11 rounded-xl border border-white/10 bg-[#07081a] px-3.5 text-xs text-white focus:border-[#22ffb4] focus:outline-hidden transition [&>option]:bg-[#0c0d24] [&>option]:text-white"
               >
                 <option value="mensal">Mensal</option>
                 <option value="quinzenal">Quinzenal</option>
@@ -205,19 +205,19 @@ export default function ConfiguracoesPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold font-mono text-slate-400 mb-1.5">
+              <label className="block text-xs font-semibold font-mono text-slate-400 mb-2">
                 Próxima Data de Recebimento
               </label>
               <input
                 type="date"
                 value={nextPayday}
                 onChange={(e) => setNextPayday(e.target.value)}
-                className="w-full rounded-xl border border-white/10 bg-[#07081a] py-2.5 px-3.5 text-xs font-mono text-white focus:border-[#22ffb4] focus:outline-hidden transition"
+                className="w-full h-11 rounded-xl border border-white/10 bg-[#07081a] px-3.5 text-xs font-mono text-white focus:border-[#22ffb4] focus:outline-hidden transition"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold font-mono text-slate-400 mb-1.5">
+              <label className="block text-xs font-semibold font-mono text-slate-400 mb-2">
                 Saldo Atual em Conta (R$)
               </label>
               <input
@@ -226,12 +226,12 @@ export default function ConfiguracoesPage() {
                 value={balanceStr}
                 onChange={(e) => setBalanceStr(formatCurrencyInput(e.target.value))}
                 placeholder="Ex: 1.200,00"
-                className="w-full rounded-xl border border-white/10 bg-[#07081a] py-2.5 px-3.5 text-xs font-mono text-white placeholder:text-slate-500 focus:border-[#22ffb4] focus:outline-hidden transition"
+                className="w-full h-11 rounded-xl border border-white/10 bg-[#07081a] px-3.5 text-xs font-mono text-white placeholder:text-slate-500 focus:border-[#22ffb4] focus:outline-hidden transition"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold font-mono text-slate-400 mb-1.5">
+              <label className="block text-xs font-semibold font-mono text-slate-400 mb-2">
                 Reserva de Segurança Blindada (R$)
               </label>
               <input
@@ -240,7 +240,7 @@ export default function ConfiguracoesPage() {
                 value={reserveStr}
                 onChange={(e) => setReserveStr(formatCurrencyInput(e.target.value))}
                 placeholder="Ex: 500,00"
-                className="w-full rounded-xl border border-white/10 bg-[#07081a] py-2.5 px-3.5 text-xs font-mono text-white placeholder:text-slate-500 focus:border-[#22ffb4] focus:outline-hidden transition"
+                className="w-full h-11 rounded-xl border border-white/10 bg-[#07081a] px-3.5 text-xs font-mono text-white placeholder:text-slate-500 focus:border-[#22ffb4] focus:outline-hidden transition"
               />
             </div>
           </div>

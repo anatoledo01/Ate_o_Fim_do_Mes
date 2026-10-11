@@ -272,7 +272,7 @@ export default function OnboardingPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-mono-tech uppercase tracking-wider text-[#a9a8c6] mb-1.5">
+                  <label className="block text-xs font-mono-tech uppercase tracking-wider text-[#a9a8c6] mb-2.5">
                     Próxima data de recebimento
                   </label>
                   <input
@@ -280,7 +280,7 @@ export default function OnboardingPage() {
                     value={nextPayday}
                     onChange={(e) => setNextPayday(e.target.value)}
                     required
-                    className="w-full rounded-2xl border border-white/10 bg-white/5 py-3 px-3.5 text-sm font-mono-tech text-white focus:border-[#22ffb4] focus:ring-2 focus:ring-[#22ffb4]/20 focus:outline-hidden"
+                    className="w-full h-12 rounded-2xl border border-white/10 bg-white/5 px-3.5 text-sm font-mono-tech text-white focus:border-[#22ffb4] focus:ring-2 focus:ring-[#22ffb4]/20 focus:outline-hidden"
                   />
                 </div>
               </div>

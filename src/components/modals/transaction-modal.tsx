@@ -112,7 +112,7 @@ export function TransactionModal({ isOpen, onClose, defaultType = 'expense' }: T
 
           {/* Amount input */}
           <div>
-            <label className="block text-xs font-semibold font-mono text-slate-400 mb-1">
+            <label className="block text-xs font-semibold font-mono text-slate-300 mb-2">
               Valor (R$)
             </label>
             <div className="relative">
@@ -126,14 +126,14 @@ export function TransactionModal({ isOpen, onClose, defaultType = 'expense' }: T
                 onChange={(e) => setAmountStr(formatCurrencyInput(e.target.value))}
                 placeholder="0,00"
                 autoFocus
-                className="w-full rounded-xl border border-white/10 bg-[#07081a] py-2.5 pl-11 pr-4 text-lg font-bold font-mono text-white placeholder:text-slate-600 focus:border-[#22ffb4] focus:outline-hidden transition"
+                className="w-full h-12 rounded-xl border border-white/10 bg-[#07081a] pl-11 pr-4 text-lg font-bold font-mono text-white placeholder:text-slate-600 focus:border-[#22ffb4] focus:outline-hidden transition"
               />
             </div>
           </div>
 
           {/* Description */}
           <div>
-            <label className="block text-xs font-semibold font-mono text-slate-400 mb-1">
+            <label className="block text-xs font-semibold font-mono text-slate-300 mb-2">
               Descrição
             </label>
             <input
@@ -141,19 +141,19 @@ export function TransactionModal({ isOpen, onClose, defaultType = 'expense' }: T
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Ex: Almoço, Farmácia, Combustível"
-              className="w-full rounded-xl border border-white/10 bg-[#07081a] py-2.5 px-3.5 text-xs text-white placeholder:text-slate-600 focus:border-[#22ffb4] focus:outline-hidden transition"
+              className="w-full h-11 rounded-xl border border-white/10 bg-[#07081a] px-3.5 text-xs text-white placeholder:text-slate-600 focus:border-[#22ffb4] focus:outline-hidden transition"
             />
           </div>
 
           {/* Category */}
           <div>
-            <label className="block text-xs font-semibold font-mono text-slate-400 mb-1">
+            <label className="block text-xs font-semibold font-mono text-slate-300 mb-2">
               Categoria
             </label>
             <select
               value={categoryId}
               onChange={(e) => setCategoryId(e.target.value)}
-              className="w-full rounded-xl border border-white/10 bg-[#07081a] py-2.5 px-3.5 text-xs text-white focus:border-[#22ffb4] focus:outline-hidden transition [&>option]:bg-[#0c0d24] [&>option]:text-white"
+              className="w-full h-11 rounded-xl border border-white/10 bg-[#07081a] px-3.5 text-xs text-white focus:border-[#22ffb4] focus:outline-hidden transition [&>option]:bg-[#0c0d24] [&>option]:text-white"
             >
               {categories.map((c) => (
                 <option key={c.id} value={c.id}>
@@ -165,20 +165,20 @@ export function TransactionModal({ isOpen, onClose, defaultType = 'expense' }: T
 
           {/* Date */}
           <div>
-            <label className="block text-xs font-semibold font-mono text-slate-400 mb-1">
+            <label className="block text-xs font-semibold font-mono text-slate-300 mb-2">
               Data da Operação
             </label>
             <input
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="w-full rounded-xl border border-white/10 bg-[#07081a] py-2.5 px-3.5 text-xs font-mono text-white focus:border-[#22ffb4] focus:outline-hidden transition"
+              className="w-full h-11 rounded-xl border border-white/10 bg-[#07081a] px-3.5 text-xs font-mono text-white focus:border-[#22ffb4] focus:outline-hidden transition"
             />
           </div>
 
           {/* Notes (optional) */}
           <div>
-            <label className="block text-xs font-semibold font-mono text-slate-400 mb-1">
+            <label className="block text-xs font-semibold font-mono text-slate-300 mb-2">
               Observações (Opcional)
             </label>
             <input
@@ -186,7 +186,7 @@ export function TransactionModal({ isOpen, onClose, defaultType = 'expense' }: T
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Ex: Cartão de débito, comprovante salvo"
-              className="w-full rounded-xl border border-white/10 bg-[#07081a] py-2.5 px-3.5 text-xs text-white placeholder:text-slate-600 focus:border-[#22ffb4] focus:outline-hidden transition"
+              className="w-full h-11 rounded-xl border border-white/10 bg-[#07081a] px-3.5 text-xs text-white placeholder:text-slate-600 focus:border-[#22ffb4] focus:outline-hidden transition"
             />
           </div>
 

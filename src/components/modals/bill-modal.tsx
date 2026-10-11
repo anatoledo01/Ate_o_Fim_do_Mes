@@ -110,7 +110,7 @@ export function BillModal({ isOpen, onClose }: BillModalProps) {
           )}
 
           <div>
-            <label className="block text-xs font-semibold font-mono text-slate-400 mb-1">
+            <label className="block text-xs font-semibold font-mono text-slate-300 mb-2">
               Valor (R$)
             </label>
             <div className="relative">
@@ -124,13 +124,13 @@ export function BillModal({ isOpen, onClose }: BillModalProps) {
                 onChange={(e) => setAmountStr(formatCurrencyInput(e.target.value))}
                 placeholder="0,00"
                 autoFocus
-                className="w-full rounded-xl border border-white/10 bg-[#07081a] py-2.5 pl-11 pr-4 text-lg font-bold font-mono text-white placeholder:text-slate-600 focus:border-[#5b8cff] focus:outline-hidden transition"
+                className="w-full h-12 rounded-xl border border-white/10 bg-[#07081a] pl-11 pr-4 text-lg font-bold font-mono text-white placeholder:text-slate-600 focus:border-[#5b8cff] focus:outline-hidden transition"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold font-mono text-slate-400 mb-1">
+            <label className="block text-xs font-semibold font-mono text-slate-300 mb-2">
               Descrição da conta
             </label>
             <input
@@ -138,30 +138,30 @@ export function BillModal({ isOpen, onClose }: BillModalProps) {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Ex: Aluguel, Luz, Internet, Parcela do Cartão"
-              className="w-full rounded-xl border border-white/10 bg-[#07081a] py-2.5 px-3.5 text-xs text-white placeholder:text-slate-600 focus:border-[#5b8cff] focus:outline-hidden transition"
+              className="w-full h-11 rounded-xl border border-white/10 bg-[#07081a] px-3.5 text-xs text-white placeholder:text-slate-600 focus:border-[#5b8cff] focus:outline-hidden transition"
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-3.5 items-start">
             <div>
-              <label className="block text-xs font-semibold font-mono text-slate-400 mb-1">
+              <label className="block text-xs font-semibold font-mono text-slate-300 mb-2">
                 Vencimento
               </label>
               <input
                 type="date"
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
-                className="w-full rounded-xl border border-white/10 bg-[#07081a] py-2.5 px-3 text-xs font-mono text-white focus:border-[#5b8cff] focus:outline-hidden transition"
+                className="w-full h-11 rounded-xl border border-white/10 bg-[#07081a] px-3 text-xs font-mono text-white focus:border-[#5b8cff] focus:outline-hidden transition"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold font-mono text-slate-400 mb-1">
+              <label className="block text-xs font-semibold font-mono text-slate-300 mb-2">
                 Recorrência
               </label>
               <select
                 value={recurrence}
                 onChange={(e) => setRecurrence(e.target.value as 'none' | 'monthly' | 'weekly' | 'yearly')}
-                className="w-full rounded-xl border border-white/10 bg-[#07081a] py-2.5 px-3 text-xs text-white focus:border-[#5b8cff] focus:outline-hidden transition [&>option]:bg-[#0c0d24] [&>option]:text-white"
+                className="w-full h-11 rounded-xl border border-white/10 bg-[#07081a] px-3 text-xs text-white focus:border-[#5b8cff] focus:outline-hidden transition [&>option]:bg-[#0c0d24] [&>option]:text-white"
               >
                 <option value="none">Apenas uma vez</option>
                 <option value="monthly">Mensal</option>
@@ -172,13 +172,13 @@ export function BillModal({ isOpen, onClose }: BillModalProps) {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold font-mono text-slate-400 mb-1">
+            <label className="block text-xs font-semibold font-mono text-slate-300 mb-2">
               Categoria
             </label>
             <select
               value={categoryId}
               onChange={(e) => setCategoryId(e.target.value)}
-              className="w-full rounded-xl border border-white/10 bg-[#07081a] py-2.5 px-3.5 text-xs text-white focus:border-[#5b8cff] focus:outline-hidden transition [&>option]:bg-[#0c0d24] [&>option]:text-white"
+              className="w-full h-11 rounded-xl border border-white/10 bg-[#07081a] px-3.5 text-xs text-white focus:border-[#5b8cff] focus:outline-hidden transition [&>option]:bg-[#0c0d24] [&>option]:text-white"
             >
               {categories.map((c) => (
                 <option key={c.id} value={c.id}>

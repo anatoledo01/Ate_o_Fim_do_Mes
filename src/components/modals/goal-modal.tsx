@@ -82,7 +82,7 @@ export function GoalModal({ isOpen, onClose }: GoalModalProps) {
           )}
 
           <div>
-            <label className="block text-xs font-semibold font-mono text-slate-400 mb-1">
+            <label className="block text-xs font-semibold font-mono text-slate-300 mb-2">
               Título do Objetivo
             </label>
             <input
@@ -91,13 +91,13 @@ export function GoalModal({ isOpen, onClose }: GoalModalProps) {
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Ex: Reserva de Emergência, Viagem de Férias"
               autoFocus
-              className="w-full rounded-xl border border-white/10 bg-[#07081a] py-2.5 px-3.5 text-xs text-white placeholder:text-slate-600 focus:border-[#ffd000] focus:outline-hidden transition"
+              className="w-full h-11 rounded-xl border border-white/10 bg-[#07081a] px-3.5 text-xs text-white placeholder:text-slate-600 focus:border-[#ffd000] focus:outline-hidden transition"
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-3.5 items-start">
             <div>
-              <label className="block text-xs font-semibold font-mono text-slate-400 mb-1">
+              <label className="block text-xs font-semibold font-mono text-slate-300 mb-2">
                 Valor Desejado (R$)
               </label>
               <input
@@ -106,11 +106,11 @@ export function GoalModal({ isOpen, onClose }: GoalModalProps) {
                 value={targetStr}
                 onChange={(e) => setTargetStr(formatCurrencyInput(e.target.value))}
                 placeholder="0,00"
-                className="w-full rounded-xl border border-white/10 bg-[#07081a] py-2.5 px-3 text-xs font-mono font-bold text-white placeholder:text-slate-600 focus:border-[#ffd000] focus:outline-hidden transition"
+                className="w-full h-11 rounded-xl border border-white/10 bg-[#07081a] px-3 text-xs font-mono font-bold text-white placeholder:text-slate-600 focus:border-[#ffd000] focus:outline-hidden transition"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold font-mono text-slate-400 mb-1">
+              <label className="block text-xs font-semibold font-mono text-slate-300 mb-2">
                 Já Acumulado (R$)
               </label>
               <input
@@ -119,20 +119,20 @@ export function GoalModal({ isOpen, onClose }: GoalModalProps) {
                 value={currentStr}
                 onChange={(e) => setCurrentStr(formatCurrencyInput(e.target.value))}
                 placeholder="0,00"
-                className="w-full rounded-xl border border-white/10 bg-[#07081a] py-2.5 px-3 text-xs font-mono text-white placeholder:text-slate-600 focus:border-[#ffd000] focus:outline-hidden transition"
+                className="w-full h-11 rounded-xl border border-white/10 bg-[#07081a] px-3 text-xs font-mono text-white placeholder:text-slate-600 focus:border-[#ffd000] focus:outline-hidden transition"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold font-mono text-slate-400 mb-1">
+            <label className="block text-xs font-semibold font-mono text-slate-300 mb-2">
               Prazo Estimado (Opcional)
             </label>
             <input
               type="date"
               value={targetDate}
               onChange={(e) => setTargetDate(e.target.value)}
-              className="w-full rounded-xl border border-white/10 bg-[#07081a] py-2.5 px-3.5 text-xs font-mono text-white focus:border-[#ffd000] focus:outline-hidden transition"
+              className="w-full h-11 rounded-xl border border-white/10 bg-[#07081a] px-3.5 text-xs font-mono text-white focus:border-[#ffd000] focus:outline-hidden transition"
             />
           </div>
 
