@@ -478,4 +478,55 @@ test('11. Roteamento Direto para a Conta para Usuários Autenticados (Ignorar La
   assert.equal(routeLoading.action, 'wait_splash');
 });
 
+test('12. Exclusão e Recriação Segura de Cadastro Existente (Overwrite)', () => {
+  const mockStorage = new Map();
+  const ACCOUNTS_KEY = 'ate_o_fim_do_mes_auth_accounts';
+
+  function getAccounts() {
+    return JSON.parse(mockStorage.get(ACCOUNTS_KEY) || '{}');
+  }
+
+  function register(email, password, overwrite = false) {
+    const accounts = getAccounts();
+    const normalized = email.toLowerCase().trim();
+    if (accounts[normalized] && !overwrite) {
+      return { error: 'Este e-mail já está cadastrado. Faça login na sua conta.' };
+    }
+    const newAccount = { userId: 'usr_' + Date.now(), email: normalized };
+    accounts[normalized] = newAccount;
+    mockStorage.set(ACCOUNTS_KEY, JSON.stringify(accounts));
+    return { account: newAccount };
+  }
+
+  function deleteAccount(email) {
+    const accounts = getAccounts();
+    const normalized = email.toLowerCase().trim();
+    if (accounts[normalized]) {
+      delete accounts[normalized];
+      mockStorage.set(ACCOUNTS_KEY, JSON.stringify(accounts));
+      return true;
+    }
+    return false;
+  }
+
+  // 1. Cadastra conta inicial
+  const first = register('usuario@exemplo.com', '123456');
+  assert.equal(first.error, undefined);
+
+  // 2. Tenta cadastrar novamente -> bloqueado por duplicidade
+  const second = register('usuario@exemplo.com', 'outrasenha', false);
+  assert.equal(second.error, 'Este e-mail já está cadastrado. Faça login na sua conta.');
+
+  // 3. Usuário clica em 'Excluir cadastro e recriar conta' -> sucesso imediato
+  const reset = register('usuario@exemplo.com', 'novasenha', true);
+  assert.equal(reset.error, undefined);
+  assert(reset.account.userId);
+
+  // 4. Excluir diretamente por e-mail
+  const deleted = deleteAccount('usuario@exemplo.com');
+  assert.equal(deleted, true);
+  assert.equal(getAccounts()['usuario@exemplo.com'], undefined);
+});
+
+
 

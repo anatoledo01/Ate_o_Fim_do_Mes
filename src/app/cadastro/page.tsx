@@ -76,6 +76,31 @@ export default function CadastroPage() {
     }
   };
 
+  const isDuplicateEmail = Boolean(
+    error &&
+    (error.toLowerCase().includes('já está cadastrado') ||
+     error.toLowerCase().includes('already registered'))
+  );
+
+  const handleOverwrite = async () => {
+    setError('');
+    setLoading(true);
+    const res = await signup(email, password, name.trim(), true);
+    setLoading(false);
+
+    if (res.error) {
+      setError(res.error);
+    } else {
+      fetch('/api/email/welcome', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim(), name: name.trim() }),
+      }).catch((err) => console.error('Falha ao disparar boas-vindas Brevo:', err));
+
+      router.push('/onboarding');
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col justify-between bg-[#07081a] text-[#f2f1fa] relative overflow-hidden">
       <div className="ambient-glow -z-10" />
@@ -101,8 +126,29 @@ export default function CadastroPage() {
           </div>
 
           {error && (
-            <div className="mt-5 rounded-2xl bg-rose-950/50 border border-rose-500/30 p-3 text-xs font-medium text-rose-300">
-              {error}
+            <div className="mt-5 rounded-2xl bg-rose-950/60 border border-rose-500/40 p-4 text-xs font-medium text-rose-200 space-y-3">
+              <div className="flex items-start gap-2">
+                <span className="text-sm">⚠️</span>
+                <span>{error}</span>
+              </div>
+              {isDuplicateEmail && (
+                <div className="pt-2.5 border-t border-rose-500/20 flex flex-col sm:flex-row gap-2">
+                  <Link
+                    href={`/login?email=${encodeURIComponent(email)}`}
+                    className="flex-1 text-center py-2.5 px-3 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold transition text-xs"
+                  >
+                    Fazer Login
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={handleOverwrite}
+                    disabled={loading}
+                    className="flex-1 py-2.5 px-3 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold transition text-xs shadow-md disabled:opacity-70"
+                  >
+                    {loading ? 'Redefinindo...' : 'Excluir cadastro e recriar conta'}
+                  </button>
+                </div>
+              )}
             </div>
           )}
 

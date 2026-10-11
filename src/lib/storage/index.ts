@@ -460,11 +460,28 @@ export const StorageRepository = {
     return !!this.findRegisteredAccount(email);
   },
 
+  deleteRegisteredAccount(email: string): boolean {
+    if (typeof window === 'undefined') return false;
+    const normalizedEmail = email.toLowerCase().trim();
+    const accounts = this.getRegisteredAccounts();
+    if (accounts[normalizedEmail]) {
+      const userId = accounts[normalizedEmail].userId;
+      delete accounts[normalizedEmail];
+      localStorage.setItem('ate_o_fim_do_mes_auth_accounts', JSON.stringify(accounts));
+      if (userId) {
+        localStorage.removeItem('ate_o_fim_do_mes_user_' + userId);
+      }
+      return true;
+    }
+    return false;
+  },
+
   registerAccount(
     email: string,
     password?: string,
     displayName?: string,
-    customUserId?: string
+    customUserId?: string,
+    overwrite?: boolean
   ): { account?: { userId: string; email: string; passwordHash: string; displayName: string; createdAt: string }; error?: string } {
     if (typeof window === 'undefined') return { error: 'Ambiente inválido' };
     const normalizedEmail = email.toLowerCase().trim();
@@ -472,7 +489,7 @@ export const StorageRepository = {
       return { error: 'E-mail inválido.' };
     }
     const accounts = this.getRegisteredAccounts();
-    if (accounts[normalizedEmail]) {
+    if (accounts[normalizedEmail] && !overwrite) {
       return { error: 'Este e-mail já está cadastrado. Faça login na sua conta.' };
     }
     const userId = customUserId || ('usr_' + Math.random().toString(36).substring(2, 10));

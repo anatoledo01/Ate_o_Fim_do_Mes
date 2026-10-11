@@ -11,11 +11,17 @@ interface AuthContextType {
   isLoading: boolean;
   isDemoMode: boolean;
   login: (email: string, password?: string) => Promise<{ error?: string }>;
-  signup: (email: string, password?: string, displayName?: string) => Promise<{ error?: string }>;
+  signup: (
+    email: string,
+    password?: string,
+    displayName?: string,
+    overwriteExisting?: boolean
+  ) => Promise<{ error?: string }>;
   loginAsDemo: () => void;
   logout: () => Promise<void>;
   updateUserProfile: (updates: Partial<UserProfile>) => void;
   completeOnboarding: (settings: Partial<FinancialSettings>) => void;
+  deleteRegisteredAccount: (email: string) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -155,12 +161,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return {};
   };
 
-  const signup = async (email: string, password?: string, displayName?: string): Promise<{ error?: string }> => {
+  const signup = async (
+    email: string,
+    password?: string,
+    displayName?: string,
+    overwriteExisting: boolean = false
+  ): Promise<{ error?: string }> => {
     setIsLoading(true);
     const normalizedEmail = email.toLowerCase().trim();
 
+    // Se o usuário solicitou sobrescrever, limpa registros prévios desse e-mail
+    if (overwriteExisting) {
+      StorageRepository.deleteRegisteredAccount(normalizedEmail);
+    }
+
     // 1. Bloqueio prévio: verificar se o e-mail já existe no dispositivo local
-    if (StorageRepository.isEmailRegistered(normalizedEmail)) {
+    if (!overwriteExisting && StorageRepository.isEmailRegistered(normalizedEmail)) {
       setIsLoading(false);
       return { error: 'Este e-mail já está cadastrado. Faça login na sua conta.' };
     }
@@ -175,7 +191,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         },
       });
 
-      if (error) {
+      if (error && !overwriteExisting) {
         setIsLoading(false);
         const errMsg = error.message.toLowerCase();
         if (
@@ -192,8 +208,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       // Detecção de duplicidade do Supabase Auth (anti-user enumeration):
-      // Quando o e-mail já está cadastrado, o Supabase retorna data.user com identities: []
-      if (data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
+      if (!overwriteExisting && data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
         setIsLoading(false);
         return { error: 'Este e-mail já está cadastrado. Faça login na sua conta.' };
       }
@@ -204,7 +219,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           normalizedEmail,
           password,
           displayName || normalizedEmail.split('@')[0],
-          data.user.id
+          data.user.id,
+          overwriteExisting
         );
 
         const initial = createInitialUserData(data.user.id, normalizedEmail, displayName || normalizedEmail.split('@')[0]);
@@ -223,7 +239,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return { error: 'A senha deve conter no mínimo 6 caracteres.' };
     }
 
-    const reg = StorageRepository.registerAccount(normalizedEmail, password, displayName || normalizedEmail.split('@')[0]);
+    const reg = StorageRepository.registerAccount(
+      normalizedEmail,
+      password,
+      displayName || normalizedEmail.split('@')[0],
+      undefined,
+      overwriteExisting
+    );
     if (reg.error || !reg.account) {
       setIsLoading(false);
       return { error: reg.error || 'Erro ao criar conta.' };
@@ -307,6 +329,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         logout,
         updateUserProfile,
         completeOnboarding,
+        deleteRegisteredAccount: (email: string) => {
+          StorageRepository.deleteRegisteredAccount(email);
+        },
       }}
     >
       {children}
