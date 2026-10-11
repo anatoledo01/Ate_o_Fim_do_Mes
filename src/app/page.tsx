@@ -2,27 +2,19 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth/auth-context';
 import { CreditFooter } from '@/components/credit-footer';
 import {
   Wallet,
   ArrowRight,
   ShieldCheck,
-  Sparkles,
   Smartphone,
   Clock,
   Lock,
 } from 'lucide-react';
 
 export default function LandingPage() {
-  const router = useRouter();
-  const { loginAsDemo, user } = useAuth();
-
-  const handleDemoClick = () => {
-    loginAsDemo();
-    router.push('/dashboard');
-  };
+  const { user } = useAuth();
 
   const marqueeItems = [
     'Dinheiro livre real',
@@ -119,10 +111,9 @@ export default function LandingPage() {
               <ArrowRight className="h-4 w-4" />
             </Link>
 
-            <button onClick={handleDemoClick} className="btn-tech-ghost w-full sm:w-auto">
-              <Sparkles className="h-4 w-4 text-[#22ffb4]" />
-              Explorar Demonstração Interativa
-            </button>
+            <Link href="/login" className="btn-tech-ghost w-full sm:w-auto">
+              Já Tenho uma Conta
+            </Link>
           </div>
 
           {/* Interactive Futuristic Card Mockup */}
@@ -368,9 +359,9 @@ export default function LandingPage() {
             <Link href="/cadastro" className="btn-tech-primary">
               Criar Conta Gratuita
             </Link>
-            <button onClick={handleDemoClick} className="btn-tech-ghost">
-              Explorar Versão Demo
-            </button>
+            <Link href="/login" className="btn-tech-ghost">
+              Acessar Minha Conta
+            </Link>
           </div>
         </div>
       </section>

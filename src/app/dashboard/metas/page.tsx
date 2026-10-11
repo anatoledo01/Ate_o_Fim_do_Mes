@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useFinancial } from '@/lib/context/financial-context';
-import { formatCurrency, formatDateBR, parseCurrencyToCents } from '@/lib/formatters';
+import { formatCurrency, formatDateBR, parseCurrencyToCents, formatCurrencyInput } from '@/lib/formatters';
 import { GoalModal } from '@/components/modals/goal-modal';
 import { Target, Plus, Trash2, Calendar, Shield } from 'lucide-react';
 
@@ -10,7 +10,7 @@ export default function MetasPage() {
   const { goals, settings, updateSettings, deleteGoal } = useFinancial();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [monthlyLimitStr, setMonthlyLimitStr] = useState(
-    settings?.monthlyBudgetLimitCents ? (settings.monthlyBudgetLimitCents / 100).toFixed(2) : ''
+    settings?.monthlyBudgetLimitCents ? formatCurrencyInput(String(settings.monthlyBudgetLimitCents)) : ''
   );
   const [savedSuccess, setSavedSuccess] = useState(false);
 
@@ -74,8 +74,9 @@ export default function MetasPage() {
             </span>
             <input
               type="text"
+              inputMode="numeric"
               value={monthlyLimitStr}
-              onChange={(e) => setMonthlyLimitStr(e.target.value)}
+              onChange={(e) => setMonthlyLimitStr(formatCurrencyInput(e.target.value))}
               placeholder="Ex: 4.000,00"
               className="w-full rounded-xl border border-white/10 bg-[#07081a] py-2 pl-10 pr-3 text-sm font-semibold font-mono text-white placeholder:text-slate-500 focus:border-[#5b8cff] focus:outline-hidden transition"
             />

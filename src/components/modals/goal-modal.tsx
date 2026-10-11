@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useFinancial } from '@/lib/context/financial-context';
-import { parseCurrencyToCents } from '@/lib/formatters';
+import { parseCurrencyToCents, formatCurrencyInput } from '@/lib/formatters';
 import { X, Target } from 'lucide-react';
 
 interface GoalModalProps {
@@ -108,8 +108,9 @@ export function GoalModal({ isOpen, onClose }: GoalModalProps) {
               </label>
               <input
                 type="text"
+                inputMode="numeric"
                 value={targetStr}
-                onChange={(e) => setTargetStr(e.target.value)}
+                onChange={(e) => setTargetStr(formatCurrencyInput(e.target.value))}
                 placeholder="0,00"
                 className="w-full rounded-xl border border-white/10 bg-[#07081a] py-2.5 px-3 text-xs font-mono font-bold text-white placeholder:text-slate-600 focus:border-[#ffd000] focus:outline-hidden transition"
               />
@@ -120,8 +121,9 @@ export function GoalModal({ isOpen, onClose }: GoalModalProps) {
               </label>
               <input
                 type="text"
+                inputMode="numeric"
                 value={currentStr}
-                onChange={(e) => setCurrentStr(e.target.value)}
+                onChange={(e) => setCurrentStr(formatCurrencyInput(e.target.value))}
                 placeholder="0,00"
                 className="w-full rounded-xl border border-white/10 bg-[#07081a] py-2.5 px-3 text-xs font-mono text-white placeholder:text-slate-600 focus:border-[#ffd000] focus:outline-hidden transition"
               />

@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth/auth-context';
 import { AppHeader } from '@/components/app-header';
 import { CurvedNavBar } from '@/components/curved-nav-bar';
-import { DemoBadge } from '@/components/demo-badge';
 import { CreditFooter } from '@/components/credit-footer';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -34,7 +33,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <div className="min-h-screen flex flex-col bg-[#07081a] text-[#f2f1fa] relative overflow-x-hidden selection:bg-[#22ffb4]/30 selection:text-[#22ffb4]">
       <div className="ambient-glow -z-10" />
-      <DemoBadge />
       <AppHeader />
       <main className="flex-1 pb-28">{children}</main>
       <CurvedNavBar />

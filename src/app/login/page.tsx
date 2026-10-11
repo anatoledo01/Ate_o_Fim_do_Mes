@@ -5,11 +5,11 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth/auth-context';
 import { CreditFooter } from '@/components/credit-footer';
-import { Wallet, Sparkles, ArrowRight, Lock, Mail } from 'lucide-react';
+import { Wallet, ArrowRight, Lock, Mail } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login, loginAsDemo } = useAuth();
+  const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -37,11 +37,6 @@ export default function LoginPage() {
     } else {
       router.push('/dashboard');
     }
-  };
-
-  const handleDemo = () => {
-    loginAsDemo();
-    router.push('/dashboard');
   };
 
   return (
@@ -139,15 +134,6 @@ export default function LoginPage() {
                 Cadastre-se grátis
               </Link>
             </span>
-
-            <button
-              type="button"
-              onClick={handleDemo}
-              className="inline-flex items-center gap-1.5 text-xs font-mono-tech text-[#a9a8c6] hover:text-[#22ffb4] transition"
-            >
-              <Sparkles className="h-3.5 w-3.5 text-[#22ffb4]" />
-              Explorar como Usuário Demo
-            </button>
           </div>
         </div>
       </main>

@@ -5,11 +5,11 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth/auth-context';
 import { CreditFooter } from '@/components/credit-footer';
-import { Wallet, Sparkles, ArrowRight, Lock, Mail, User } from 'lucide-react';
+import { Wallet, ArrowRight, Lock, Mail, User } from 'lucide-react';
 
 export default function CadastroPage() {
   const router = useRouter();
-  const { signup, loginAsDemo } = useAuth();
+  const { signup } = useAuth();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -47,11 +47,6 @@ export default function CadastroPage() {
     } else {
       router.push('/onboarding');
     }
-  };
-
-  const handleDemo = () => {
-    loginAsDemo();
-    router.push('/dashboard');
   };
 
   return (
@@ -174,15 +169,6 @@ export default function CadastroPage() {
                 Fazer login
               </Link>
             </span>
-
-            <button
-              type="button"
-              onClick={handleDemo}
-              className="inline-flex items-center gap-1.5 text-xs font-mono-tech text-[#a9a8c6] hover:text-[#22ffb4] transition"
-            >
-              <Sparkles className="h-3.5 w-3.5 text-[#22ffb4]" />
-              Experimentar sem cadastro (Modo Demo)
-            </button>
           </div>
         </div>
       </main>

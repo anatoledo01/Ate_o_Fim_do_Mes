@@ -17,6 +17,23 @@ export function formatCurrency(cents: number): string {
 }
 
 /**
+ * Real-time currency mask for BRL inputs (e.g. typing digits produces "1.234,56").
+ * Formats user input as cents shifted into Brazilian Real decimal string.
+ */
+export function formatCurrencyInput(value: string): string {
+  const digits = value.replace(/\D/g, '');
+  if (!digits || digits === '0' || digits === '00') return '';
+  
+  const cents = parseInt(digits, 10);
+  if (isNaN(cents) || cents === 0) return '';
+  
+  return (cents / 100).toLocaleString('pt-BR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+}
+
+/**
  * Parses user input currency (e.g., "1.234,56" or "1234,56" or "100.50") into integer cents.
  */
 export function parseCurrencyToCents(input: string | number): number {

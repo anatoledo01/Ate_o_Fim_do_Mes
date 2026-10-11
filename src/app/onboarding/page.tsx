@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useFinancial } from '@/lib/context/financial-context';
 import { CreditFooter } from '@/components/credit-footer';
-import { formatCurrency, parseCurrencyToCents } from '@/lib/formatters';
+import { formatCurrency, parseCurrencyToCents, formatCurrencyInput } from '@/lib/formatters';
 import { IncomeFrequency } from '@/lib/types';
 import confetti from 'canvas-confetti';
 import {
@@ -37,14 +37,14 @@ export default function OnboardingPage() {
   const totalSteps = 7;
 
   // Form states
-  const [incomeStr, setIncomeStr] = useState('3500,00');
+  const [incomeStr, setIncomeStr] = useState('3.500,00');
   const [frequency, setFrequency] = useState<IncomeFrequency>('mensal');
   const [nextPayday, setNextPayday] = useState(() => {
     const today = new Date();
     today.setDate(today.getDate() + 15);
     return today.toISOString().split('T')[0];
   });
-  const [currentBalanceStr, setCurrentBalanceStr] = useState('2200,00');
+  const [currentBalanceStr, setCurrentBalanceStr] = useState('2.200,00');
   const [safetyReserveStr, setSafetyReserveStr] = useState('200,00');
   
   // Quick bills list
@@ -195,8 +195,9 @@ export default function OnboardingPage() {
                   </span>
                   <input
                     type="text"
+                    inputMode="numeric"
                     value={incomeStr}
-                    onChange={(e) => setIncomeStr(e.target.value)}
+                    onChange={(e) => setIncomeStr(formatCurrencyInput(e.target.value))}
                     placeholder="3.500,00"
                     autoFocus
                     className="w-full rounded-2xl border border-white/10 bg-white/5 py-3 pl-12 pr-4 text-2xl font-bold text-white focus:border-[#22ffb4] focus:ring-2 focus:ring-[#22ffb4]/20 focus:outline-hidden"
@@ -283,8 +284,9 @@ export default function OnboardingPage() {
                   </span>
                   <input
                     type="text"
+                    inputMode="numeric"
                     value={currentBalanceStr}
-                    onChange={(e) => setCurrentBalanceStr(e.target.value)}
+                    onChange={(e) => setCurrentBalanceStr(formatCurrencyInput(e.target.value))}
                     placeholder="2.200,00"
                     autoFocus
                     className="w-full rounded-2xl border border-white/10 bg-white/5 py-3 pl-12 pr-4 text-2xl font-bold text-white focus:border-[#22ffb4] focus:ring-2 focus:ring-[#22ffb4]/20 focus:outline-hidden"
@@ -318,8 +320,9 @@ export default function OnboardingPage() {
                 />
                 <input
                   type="text"
+                  inputMode="numeric"
                   value={newBillAmount}
-                  onChange={(e) => setNewBillAmount(e.target.value)}
+                  onChange={(e) => setNewBillAmount(formatCurrencyInput(e.target.value))}
                   placeholder="Valor (R$)"
                   className="w-28 rounded-2xl border border-white/10 bg-white/5 py-2.5 px-3 text-xs text-white focus:border-[#22ffb4] focus:outline-hidden"
                 />
@@ -381,8 +384,9 @@ export default function OnboardingPage() {
                   </span>
                   <input
                     type="text"
+                    inputMode="numeric"
                     value={safetyReserveStr}
-                    onChange={(e) => setSafetyReserveStr(e.target.value)}
+                    onChange={(e) => setSafetyReserveStr(formatCurrencyInput(e.target.value))}
                     placeholder="200,00"
                     autoFocus
                     className="w-full rounded-2xl border border-white/10 bg-white/5 py-3 pl-12 pr-4 text-2xl font-bold text-white focus:border-[#22ffb4] focus:ring-2 focus:ring-[#22ffb4]/20 focus:outline-hidden"

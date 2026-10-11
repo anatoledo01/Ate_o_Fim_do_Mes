@@ -12,6 +12,17 @@ function parseCurrencyToCents(input) {
   return isNaN(parsed) ? 0 : Math.round(parsed * 100);
 }
 
+function formatCurrencyInput(value) {
+  const digits = value.replace(/\D/g, '');
+  if (!digits || digits === '0' || digits === '00') return '';
+  const cents = parseInt(digits, 10);
+  if (isNaN(cents) || cents === 0) return '';
+  return (cents / 100).toLocaleString('pt-BR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+}
+
 function validateTransactionInput({ amountStr, description }) {
   const amountCents = parseCurrencyToCents(amountStr);
   if (amountCents <= 0) {
@@ -44,6 +55,18 @@ test('Validation: Currency parsing with Brazilian comma and dots', () => {
   assert.equal(parseCurrencyToCents('0,99'), 99);
   assert.equal(parseCurrencyToCents('0'), 0);
   assert.equal(parseCurrencyToCents(''), 0);
+});
+
+test('Validation: formatCurrencyInput real-time mask', () => {
+  assert.equal(formatCurrencyInput('270000'), '2.700,00');
+  assert.equal(formatCurrencyInput('350000'), '3.500,00');
+  assert.equal(formatCurrencyInput('15000'), '150,00');
+  assert.equal(formatCurrencyInput('800'), '8,00');
+  assert.equal(formatCurrencyInput('50'), '0,50');
+  assert.equal(formatCurrencyInput('5'), '0,05');
+  assert.equal(formatCurrencyInput('0'), '');
+  assert.equal(formatCurrencyInput(''), '');
+  assert.equal(formatCurrencyInput('abc270000xyz'), '2.700,00');
 });
 
 test('Validation: Transaction input validator rules', () => {

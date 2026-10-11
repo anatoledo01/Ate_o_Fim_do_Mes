@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useFinancial } from '@/lib/context/financial-context';
-import { getTodayDateString, parseCurrencyToCents } from '@/lib/formatters';
+import { getTodayDateString, parseCurrencyToCents, formatCurrencyInput } from '@/lib/formatters';
 import { X, ArrowDownRight, ArrowUpRight } from 'lucide-react';
 
 interface TransactionModalProps {
@@ -127,8 +127,9 @@ export function TransactionModal({ isOpen, onClose, defaultType = 'expense' }: T
               </span>
               <input
                 type="text"
+                inputMode="numeric"
                 value={amountStr}
-                onChange={(e) => setAmountStr(e.target.value)}
+                onChange={(e) => setAmountStr(formatCurrencyInput(e.target.value))}
                 placeholder="0,00"
                 autoFocus
                 className="w-full rounded-xl border border-white/10 bg-[#07081a] py-2.5 pl-11 pr-4 text-lg font-bold font-mono text-white placeholder:text-slate-600 focus:border-[#22ffb4] focus:outline-hidden transition"

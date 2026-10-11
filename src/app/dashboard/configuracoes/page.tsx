@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useFinancial } from '@/lib/context/financial-context';
-import { parseCurrencyToCents } from '@/lib/formatters';
+import { parseCurrencyToCents, formatCurrencyInput } from '@/lib/formatters';
 import { IncomeFrequency } from '@/lib/types';
 import {
   Settings,
@@ -35,17 +35,17 @@ export default function ConfiguracoesPage() {
 
   // Financial settings state
   const [incomeStr, setIncomeStr] = useState(
-    settings ? (settings.primaryIncomeCents / 100).toFixed(2) : ''
+    settings ? formatCurrencyInput(String(settings.primaryIncomeCents)) : ''
   );
   const [frequency, setFrequency] = useState<IncomeFrequency>(
     settings?.incomeFrequency || 'mensal'
   );
   const [nextPayday, setNextPayday] = useState(settings?.nextPayday || '');
   const [balanceStr, setBalanceStr] = useState(
-    settings ? (settings.currentBalanceCents / 100).toFixed(2) : ''
+    settings ? formatCurrencyInput(String(settings.currentBalanceCents)) : ''
   );
   const [reserveStr, setReserveStr] = useState(
-    settings ? (settings.safetyReserveCents / 100).toFixed(2) : ''
+    settings ? formatCurrencyInput(String(settings.safetyReserveCents)) : ''
   );
   const [settingsSaved, setSettingsSaved] = useState(false);
 
@@ -184,8 +184,9 @@ export default function ConfiguracoesPage() {
               </label>
               <input
                 type="text"
+                inputMode="numeric"
                 value={incomeStr}
-                onChange={(e) => setIncomeStr(e.target.value)}
+                onChange={(e) => setIncomeStr(formatCurrencyInput(e.target.value))}
                 placeholder="Ex: 5.000,00"
                 className="w-full rounded-xl border border-white/10 bg-[#07081a] py-2.5 px-3.5 text-xs font-mono text-white placeholder:text-slate-500 focus:border-[#22ffb4] focus:outline-hidden transition"
               />
@@ -225,8 +226,9 @@ export default function ConfiguracoesPage() {
               </label>
               <input
                 type="text"
+                inputMode="numeric"
                 value={balanceStr}
-                onChange={(e) => setBalanceStr(e.target.value)}
+                onChange={(e) => setBalanceStr(formatCurrencyInput(e.target.value))}
                 placeholder="Ex: 1.200,00"
                 className="w-full rounded-xl border border-white/10 bg-[#07081a] py-2.5 px-3.5 text-xs font-mono text-white placeholder:text-slate-500 focus:border-[#22ffb4] focus:outline-hidden transition"
               />
@@ -238,8 +240,9 @@ export default function ConfiguracoesPage() {
               </label>
               <input
                 type="text"
+                inputMode="numeric"
                 value={reserveStr}
-                onChange={(e) => setReserveStr(e.target.value)}
+                onChange={(e) => setReserveStr(formatCurrencyInput(e.target.value))}
                 placeholder="Ex: 500,00"
                 className="w-full rounded-xl border border-white/10 bg-[#07081a] py-2.5 px-3.5 text-xs font-mono text-white placeholder:text-slate-500 focus:border-[#22ffb4] focus:outline-hidden transition"
               />
