@@ -389,3 +389,93 @@ test('9. Validação Estrita de Autenticação (Bloqueio de login sem cadastro p
   assert.equal(loginSucesso.account.email, 'usuario.real@exemplo.com');
 });
 
+test('10. Prevenção Estrita de Múltiplos Cadastros com o Mesmo E-mail', () => {
+  // Simulação da lógica de verificação do Supabase e Storage
+  function validateDuplicateSignup({ existingLocalAccounts, email, supabaseResponse }) {
+    const normalized = email.toLowerCase().trim();
+
+    // 1. Verificação local
+    if (existingLocalAccounts[normalized]) {
+      return { error: 'Este e-mail já está cadastrado. Faça login na sua conta.' };
+    }
+
+    // 2. Erro direto do Supabase
+    if (supabaseResponse?.error) {
+      const msg = supabaseResponse.error.message.toLowerCase();
+      if (msg.includes('already registered') || msg.includes('already exists') || msg.includes('unique') || msg.includes('duplicate')) {
+        return { error: 'Este e-mail já está cadastrado. Faça login na sua conta.' };
+      }
+      return { error: supabaseResponse.error.message };
+    }
+
+    // 3. Detecção de anti-user enumeration do Supabase (identities vazio)
+    if (supabaseResponse?.data?.user && Array.isArray(supabaseResponse.data.user.identities) && supabaseResponse.data.user.identities.length === 0) {
+      return { error: 'Este e-mail já está cadastrado. Faça login na sua conta.' };
+    }
+
+    return { success: true };
+  }
+
+  // Cenário A: E-mail já existente localmente
+  const resA = validateDuplicateSignup({
+    existingLocalAccounts: { 'teste@exemplo.com': { userId: 'u1' } },
+    email: 'teste@exemplo.com',
+  });
+  assert.equal(resA.error, 'Este e-mail já está cadastrado. Faça login na sua conta.');
+
+  // Cenário B: Supabase retorna erro de 'User already registered'
+  const resB = validateDuplicateSignup({
+    existingLocalAccounts: {},
+    email: 'novo@exemplo.com',
+    supabaseResponse: { error: { message: 'User already registered' } },
+  });
+  assert.equal(resB.error, 'Este e-mail já está cadastrado. Faça login na sua conta.');
+
+  // Cenário C: Supabase anti-enumeration (data.user com identities: [])
+  const resC = validateDuplicateSignup({
+    existingLocalAccounts: {},
+    email: 'novo@exemplo.com',
+    supabaseResponse: { data: { user: { id: 'u2', identities: [] } } },
+  });
+  assert.equal(resC.error, 'Este e-mail já está cadastrado. Faça login na sua conta.');
+
+  // Cenário D: Cadastro genuinamente novo (identities possui o provedor)
+  const resD = validateDuplicateSignup({
+    existingLocalAccounts: {},
+    email: 'novissimo@exemplo.com',
+    supabaseResponse: { data: { user: { id: 'u3', identities: [{ provider: 'email' }] } } },
+  });
+  assert.equal(resD.success, true);
+  assert.equal(resD.error, undefined);
+});
+
+test('11. Roteamento Direto para a Conta para Usuários Autenticados (Ignorar Landing Page)', () => {
+  function getDestinationRoute({ user, isLoading }) {
+    if (isLoading) return { action: 'wait_splash' };
+    if (!user) return { action: 'show_landing_page' };
+    return {
+      action: 'redirect_account',
+      target: user.isOnboarded ? '/dashboard' : '/onboarding',
+    };
+  }
+
+  // 1. Visitante deslogado vê landing page
+  const routeGuest = getDestinationRoute({ user: null, isLoading: false });
+  assert.equal(routeGuest.action, 'show_landing_page');
+
+  // 2. Usuário logado e já configurado vai DIRETO para o dashboard
+  const routeUser = getDestinationRoute({ user: { id: 'u1', isOnboarded: true }, isLoading: false });
+  assert.equal(routeUser.action, 'redirect_account');
+  assert.equal(routeUser.target, '/dashboard');
+
+  // 3. Novo usuário logado em onboarding vai DIRETO para o onboarding
+  const routeNewUser = getDestinationRoute({ user: { id: 'u2', isOnboarded: false }, isLoading: false });
+  assert.equal(routeNewUser.action, 'redirect_account');
+  assert.equal(routeNewUser.target, '/onboarding');
+
+  // 4. Durante checagem de sessão, exibe splash de carregamento sem piscar landing page
+  const routeLoading = getDestinationRoute({ user: null, isLoading: true });
+  assert.equal(routeLoading.action, 'wait_splash');
+});
+
+

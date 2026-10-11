@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useFinancial } from '@/lib/context/financial-context';
@@ -26,8 +26,18 @@ interface QuickBill {
 
 export default function OnboardingPage() {
   const router = useRouter();
-  const { completeOnboarding } = useAuth();
+  const { user, isLoading, completeOnboarding } = useAuth();
   const { addBill } = useFinancial();
+
+  useEffect(() => {
+    if (!isLoading) {
+      if (!user) {
+        router.replace('/login');
+      } else if (user.isOnboarded) {
+        router.replace('/dashboard');
+      }
+    }
+  }, [user, isLoading, router]);
 
   const [step, setStep] = useState(1);
   const totalSteps = 7;

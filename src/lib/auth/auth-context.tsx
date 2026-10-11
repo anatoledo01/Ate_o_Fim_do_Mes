@@ -33,14 +33,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         try {
           const { data: { session } } = await supabase.auth.getSession();
           if (session?.user) {
-            const profile = StorageRepository.getProfile(session.user.id);
-            setUser(profile || {
-              id: session.user.id,
-              email: session.user.email || '',
-              displayName: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'Usuário',
-              isOnboarded: false,
-              createdAt: session.user.created_at,
-            });
+            let profile = StorageRepository.getProfile(session.user.id);
+            if (!profile) {
+              profile = {
+                id: session.user.id,
+                email: session.user.email || '',
+                displayName: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'Usuário',
+                isOnboarded: false,
+                createdAt: session.user.created_at,
+              };
+              const initial = createInitialUserData(session.user.id, profile.email, profile.displayName);
+              StorageRepository.saveUserData(session.user.id, initial);
+            }
+
+            // Registrar a conta no armazenamento local para validação de duplicidade
+            const accounts = StorageRepository.getRegisteredAccounts();
+            const norm = (session.user.email || '').toLowerCase().trim();
+            if (norm && !accounts[norm]) {
+              accounts[norm] = {
+                userId: session.user.id,
+                email: norm,
+                passwordHash: '',
+                displayName: profile.displayName,
+                createdAt: session.user.created_at || new Date().toISOString(),
+              };
+              localStorage.setItem('ate_o_fim_do_mes_auth_accounts', JSON.stringify(accounts));
+            }
+
+            setUser(profile);
+            localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(profile));
             setIsLoading(false);
             return;
           }
@@ -58,7 +79,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setIsDemoMode(true);
           }
           const profile = StorageRepository.getProfile(parsed.id);
-          setUser(profile);
+          setUser(profile || parsed);
         } catch {
           localStorage.removeItem(CURRENT_USER_KEY);
         }
@@ -71,19 +92,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, password?: string): Promise<{ error?: string }> => {
     setIsLoading(true);
+    const normalizedEmail = email.toLowerCase().trim();
+
     if (isSupabaseConfigured && supabase && password) {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error } = await supabase.auth.signInWithPassword({ email: normalizedEmail, password });
       if (error) {
         setIsLoading(false);
+        const msg = error.message.toLowerCase();
+        if (msg.includes('invalid login credentials') || msg.includes('invalid credentials')) {
+          return { error: 'E-mail ou senha incorretos. Tente novamente.' };
+        }
         return { error: error.message };
       }
       if (data.user) {
         let profile = StorageRepository.getProfile(data.user.id);
         if (!profile) {
-          const initial = createInitialUserData(data.user.id, email, email.split('@')[0]);
+          const initial = createInitialUserData(data.user.id, normalizedEmail, normalizedEmail.split('@')[0]);
           StorageRepository.saveUserData(data.user.id, initial);
           profile = initial.profile;
         }
+
+        // Garantir que a conta esteja registrada localmente
+        const accounts = StorageRepository.getRegisteredAccounts();
+        if (!accounts[normalizedEmail]) {
+          accounts[normalizedEmail] = {
+            userId: data.user.id,
+            email: normalizedEmail,
+            passwordHash: password ? btoa(password) : '',
+            displayName: profile.displayName || normalizedEmail.split('@')[0],
+            createdAt: new Date().toISOString(),
+          };
+          localStorage.setItem('ate_o_fim_do_mes_auth_accounts', JSON.stringify(accounts));
+        }
+
         setUser(profile);
         setIsDemoMode(false);
         localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(profile));
@@ -93,7 +134,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     // Local authentication: strictly verify that account exists and credentials match
-    const verification = StorageRepository.verifyCredentials(email, password);
+    const verification = StorageRepository.verifyCredentials(normalizedEmail, password);
     if (verification.error || !verification.account) {
       setIsLoading(false);
       return { error: verification.error || 'Credenciais inválidas.' };
@@ -116,20 +157,57 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signup = async (email: string, password?: string, displayName?: string): Promise<{ error?: string }> => {
     setIsLoading(true);
+    const normalizedEmail = email.toLowerCase().trim();
+
+    // 1. Bloqueio prévio: verificar se o e-mail já existe no dispositivo local
+    if (StorageRepository.isEmailRegistered(normalizedEmail)) {
+      setIsLoading(false);
+      return { error: 'Este e-mail já está cadastrado. Faça login na sua conta.' };
+    }
+
+    // 2. Cadastro no Supabase com proteção estrita contra duplicidade
     if (isSupabaseConfigured && supabase && password) {
       const { data, error } = await supabase.auth.signUp({
-        email,
+        email: normalizedEmail,
         password,
         options: {
-          data: { full_name: displayName || email.split('@')[0] },
+          data: { full_name: displayName || normalizedEmail.split('@')[0] },
         },
       });
+
       if (error) {
         setIsLoading(false);
+        const errMsg = error.message.toLowerCase();
+        if (
+          errMsg.includes('already registered') ||
+          errMsg.includes('already exists') ||
+          errMsg.includes('unique') ||
+          errMsg.includes('duplicate') ||
+          error.status === 422 ||
+          error.status === 400
+        ) {
+          return { error: 'Este e-mail já está cadastrado. Faça login na sua conta.' };
+        }
         return { error: error.message };
       }
+
+      // Detecção de duplicidade do Supabase Auth (anti-user enumeration):
+      // Quando o e-mail já está cadastrado, o Supabase retorna data.user com identities: []
+      if (data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
+        setIsLoading(false);
+        return { error: 'Este e-mail já está cadastrado. Faça login na sua conta.' };
+      }
+
       if (data.user) {
-        const initial = createInitialUserData(data.user.id, email, displayName || email.split('@')[0]);
+        // Registrar a conta no armazenamento local para impedir qualquer tentativa futura de duplicidade
+        StorageRepository.registerAccount(
+          normalizedEmail,
+          password,
+          displayName || normalizedEmail.split('@')[0],
+          data.user.id
+        );
+
+        const initial = createInitialUserData(data.user.id, normalizedEmail, displayName || normalizedEmail.split('@')[0]);
         StorageRepository.saveUserData(data.user.id, initial);
         setUser(initial.profile);
         setIsDemoMode(false);
@@ -139,20 +217,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
-    // Local signup: register account and disallow duplicate emails
+    // 3. Cadastro local (quando Supabase não configurado ou offline)
     if (!password || password.length < 6) {
       setIsLoading(false);
       return { error: 'A senha deve conter no mínimo 6 caracteres.' };
     }
 
-    const reg = StorageRepository.registerAccount(email, password, displayName || email.split('@')[0]);
+    const reg = StorageRepository.registerAccount(normalizedEmail, password, displayName || normalizedEmail.split('@')[0]);
     if (reg.error || !reg.account) {
       setIsLoading(false);
       return { error: reg.error || 'Erro ao criar conta.' };
     }
 
     const userId = reg.account.userId;
-    const initial = createInitialUserData(userId, email, displayName || email.split('@')[0]);
+    const initial = createInitialUserData(userId, normalizedEmail, displayName || normalizedEmail.split('@')[0]);
     StorageRepository.saveUserData(userId, initial);
     setUser(initial.profile);
     setIsDemoMode(false);

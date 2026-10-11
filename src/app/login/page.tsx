@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth/auth-context';
@@ -9,11 +9,29 @@ import { Wallet, ArrowRight, Lock, Mail } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login } = useAuth();
+  const { user, isLoading, login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!isLoading && user) {
+      router.replace(user.isOnboarded ? '/dashboard' : '/onboarding');
+    }
+  }, [user, isLoading, router]);
+
+  if (isLoading || user) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#07081a] text-[#f2f1fa]">
+        <div className="ambient-glow -z-10" />
+        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-tr from-[#22ffb4] to-[#5b8cff] text-[#04110c] shadow-[0_0_24px_rgba(34,255,180,0.4)] animate-pulse">
+          <Wallet className="h-7 w-7 stroke-[2.5]" />
+        </div>
+        <p className="mt-4 text-xs font-mono-tech text-[#a9a8c6]">Redirecionando para sua conta...</p>
+      </div>
+    );
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -451,23 +451,36 @@ export const StorageRepository = {
   },
 
   findRegisteredAccount(email: string) {
+    if (!email) return null;
     const accounts = this.getRegisteredAccounts();
     return accounts[email.toLowerCase().trim()] || null;
   },
 
-  registerAccount(email: string, password: string, displayName: string): { account?: { userId: string; email: string; passwordHash: string; displayName: string }; error?: string } {
+  isEmailRegistered(email: string): boolean {
+    return !!this.findRegisteredAccount(email);
+  },
+
+  registerAccount(
+    email: string,
+    password?: string,
+    displayName?: string,
+    customUserId?: string
+  ): { account?: { userId: string; email: string; passwordHash: string; displayName: string; createdAt: string }; error?: string } {
     if (typeof window === 'undefined') return { error: 'Ambiente inválido' };
     const normalizedEmail = email.toLowerCase().trim();
+    if (!normalizedEmail) {
+      return { error: 'E-mail inválido.' };
+    }
     const accounts = this.getRegisteredAccounts();
     if (accounts[normalizedEmail]) {
       return { error: 'Este e-mail já está cadastrado. Faça login na sua conta.' };
     }
-    const userId = 'usr_' + Math.random().toString(36).substring(2, 10);
+    const userId = customUserId || ('usr_' + Math.random().toString(36).substring(2, 10));
     const newAccount = {
       userId,
       email: normalizedEmail,
-      passwordHash: btoa(password),
-      displayName,
+      passwordHash: password ? btoa(password) : '',
+      displayName: displayName || normalizedEmail.split('@')[0],
       createdAt: new Date().toISOString(),
     };
     accounts[normalizedEmail] = newAccount;

@@ -1,7 +1,8 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth/auth-context';
 import { CreditFooter } from '@/components/credit-footer';
 import {
@@ -14,7 +15,35 @@ import {
 } from 'lucide-react';
 
 export default function LandingPage() {
-  const { user } = useAuth();
+  const router = useRouter();
+  const { user, isLoading } = useAuth();
+
+  useEffect(() => {
+    if (!isLoading && user) {
+      router.replace(user.isOnboarded ? '/dashboard' : '/onboarding');
+    }
+  }, [user, isLoading, router]);
+
+  // Se o usuário já estiver logado ou a sessão estiver carregando,
+  // exibe uma tela elegante de transição e abre direto na conta
+  if (isLoading || user) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#07081a] text-[#f2f1fa] relative overflow-hidden">
+        <div className="ambient-glow -z-10" />
+        <div className="flex flex-col items-center gap-4 animate-fade-in">
+          <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-gradient-to-tr from-[#22ffb4] to-[#5b8cff] text-[#04110c] shadow-[0_0_30px_rgba(34,255,180,0.5)] animate-pulse">
+            <Wallet className="h-8 w-8 stroke-[2.5]" />
+          </div>
+          <div className="text-center space-y-1">
+            <h2 className="text-lg font-extrabold text-white">Até o Fim do Mês</h2>
+            <p className="text-xs font-mono-tech text-[#a9a8c6] tracking-wider">
+              {user ? 'Abrindo sua conta...' : 'Carregando...'}
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const marqueeItems = [
     'Dinheiro livre real',
