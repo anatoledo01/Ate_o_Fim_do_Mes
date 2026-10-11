@@ -42,14 +42,17 @@ CREATE TABLE IF NOT EXISTS profiles (
 
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users can read own profile" ON profiles;
 CREATE POLICY "Users can read own profile"
     ON profiles FOR SELECT
     USING (auth.uid() = id);
 
+DROP POLICY IF EXISTS "Users can update own profile" ON profiles;
 CREATE POLICY "Users can update own profile"
     ON profiles FOR UPDATE
     USING (auth.uid() = id);
 
+DROP POLICY IF EXISTS "Users can insert own profile" ON profiles;
 CREATE POLICY "Users can insert own profile"
     ON profiles FOR INSERT
     WITH CHECK (auth.uid() = id);
@@ -71,9 +74,10 @@ CREATE TABLE IF NOT EXISTS financial_settings (
     CONSTRAINT uq_user_settings UNIQUE(user_id)
 );
 
-CREATE INDEX idx_financial_settings_user_id ON financial_settings(user_id);
+CREATE INDEX IF NOT EXISTS idx_financial_settings_user_id ON financial_settings(user_id);
 ALTER TABLE financial_settings ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users can manage own financial settings" ON financial_settings;
 CREATE POLICY "Users can manage own financial settings"
     ON financial_settings FOR ALL
     USING (auth.uid() = user_id)
@@ -92,13 +96,15 @@ CREATE TABLE IF NOT EXISTS categories (
     created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
 
-CREATE INDEX idx_categories_user_id ON categories(user_id);
+CREATE INDEX IF NOT EXISTS idx_categories_user_id ON categories(user_id);
 ALTER TABLE categories ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users can read system or own categories" ON categories;
 CREATE POLICY "Users can read system or own categories"
     ON categories FOR SELECT
     USING (user_id IS NULL OR auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can manage own categories" ON categories;
 CREATE POLICY "Users can manage own categories"
     ON categories FOR ALL
     USING (auth.uid() = user_id)
@@ -121,11 +127,12 @@ CREATE TABLE IF NOT EXISTS transactions (
     updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
 
-CREATE INDEX idx_transactions_user_id ON transactions(user_id);
-CREATE INDEX idx_transactions_date ON transactions(date);
-CREATE INDEX idx_transactions_user_date ON transactions(user_id, date);
+CREATE INDEX IF NOT EXISTS idx_transactions_user_id ON transactions(user_id);
+CREATE INDEX IF NOT EXISTS idx_transactions_date ON transactions(date);
+CREATE INDEX IF NOT EXISTS idx_transactions_user_date ON transactions(user_id, date);
 ALTER TABLE transactions ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users can manage own transactions" ON transactions;
 CREATE POLICY "Users can manage own transactions"
     ON transactions FOR ALL
     USING (auth.uid() = user_id)
@@ -150,11 +157,12 @@ CREATE TABLE IF NOT EXISTS financial_bills (
     updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
 
-CREATE INDEX idx_financial_bills_user_id ON financial_bills(user_id);
-CREATE INDEX idx_financial_bills_due_date ON financial_bills(due_date);
-CREATE INDEX idx_financial_bills_status ON financial_bills(status);
+CREATE INDEX IF NOT EXISTS idx_financial_bills_user_id ON financial_bills(user_id);
+CREATE INDEX IF NOT EXISTS idx_financial_bills_due_date ON financial_bills(due_date);
+CREATE INDEX IF NOT EXISTS idx_financial_bills_status ON financial_bills(status);
 ALTER TABLE financial_bills ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users can manage own bills" ON financial_bills;
 CREATE POLICY "Users can manage own bills"
     ON financial_bills FOR ALL
     USING (auth.uid() = user_id)
@@ -175,9 +183,10 @@ CREATE TABLE IF NOT EXISTS financial_goals (
     updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
 
-CREATE INDEX idx_financial_goals_user_id ON financial_goals(user_id);
+CREATE INDEX IF NOT EXISTS idx_financial_goals_user_id ON financial_goals(user_id);
 ALTER TABLE financial_goals ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users can manage own goals" ON financial_goals;
 CREATE POLICY "Users can manage own goals"
     ON financial_goals FOR ALL
     USING (auth.uid() = user_id)
@@ -197,9 +206,10 @@ CREATE TABLE IF NOT EXISTS notification_preferences (
     CONSTRAINT uq_user_notifications UNIQUE(user_id)
 );
 
-CREATE INDEX idx_notification_preferences_user_id ON notification_preferences(user_id);
+CREATE INDEX IF NOT EXISTS idx_notification_preferences_user_id ON notification_preferences(user_id);
 ALTER TABLE notification_preferences ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users can manage own notification preferences" ON notification_preferences;
 CREATE POLICY "Users can manage own notification preferences"
     ON notification_preferences FOR ALL
     USING (auth.uid() = user_id)
