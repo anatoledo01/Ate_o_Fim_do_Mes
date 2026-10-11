@@ -8,6 +8,7 @@ import { formatCurrency, formatDateBR } from '@/lib/formatters';
 import { calculateCategoryBreakdown } from '@/lib/financial-engine';
 import { TransactionModal } from '@/components/modals/transaction-modal';
 import { BillModal } from '@/components/modals/bill-modal';
+import confetti from 'canvas-confetti';
 import {
   Calendar,
   AlertTriangle,
@@ -55,15 +56,43 @@ export default function DashboardPage() {
     .filter((b) => b.type === 'payable' && b.status === 'pending')
     .slice(0, 4);
 
-  // Recent 5 transactions
   const recentTransactions = transactions.slice(0, 5);
 
-  const handlePayBill = (billId: string) => {
-    markBillAsPaid(billId);
+  const [payingBillId, setPayingBillId] = useState<string | null>(null);
+  const [successToast, setSuccessToast] = useState<string | null>(null);
+
+  const handlePayBill = (billId: string, desc?: string) => {
+    setPayingBillId(billId);
+    try {
+      markBillAsPaid(billId);
+      setSuccessToast(`Conta "${desc || 'selecionada'}" liquidada com sucesso!`);
+      try {
+        confetti({
+          particleCount: 50,
+          spread: 60,
+          origin: { y: 0.7 },
+        });
+      } catch {}
+      setTimeout(() => {
+        setSuccessToast(null);
+      }, 4000);
+    } catch (e) {
+      console.error('Erro ao baixar conta:', e);
+    } finally {
+      setTimeout(() => setPayingBillId(null), 350);
+    }
   };
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 space-y-8">
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 space-y-8 relative">
+      {/* Toast Feedback */}
+      {successToast && (
+        <div className="fixed top-5 right-5 z-50 flex items-center gap-2.5 rounded-2xl border border-[#22ffb4]/40 bg-[#07081a]/95 px-4 py-3 text-xs font-bold text-[#22ffb4] shadow-[0_10px_35px_rgba(0,0,0,0.85)] backdrop-blur-2xl animate-in fade-in slide-in-from-top-3">
+          <CheckCircle2 className="h-4 w-4 shrink-0 text-[#22ffb4]" />
+          <span>{successToast}</span>
+        </div>
+      )}
+
       {/* 1. Header with greeting and payday status */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -327,10 +356,19 @@ export default function DashboardPage() {
                         {formatCurrency(bill.amountCents)}
                       </span>
                       <button
-                        onClick={() => handlePayBill(bill.id)}
-                        className="rounded-full bg-gradient-to-r from-[#22ffb4] to-[#5fffc8] px-3 py-1 text-[11px] font-bold text-[#04110c] shadow-[0_0_12px_rgba(34,255,180,0.3)] transition hover:scale-105 active:scale-95"
+                        type="button"
+                        onClick={() => handlePayBill(bill.id, bill.description)}
+                        disabled={payingBillId === bill.id}
+                        className="rounded-full bg-gradient-to-r from-[#22ffb4] to-[#5fffc8] px-3.5 py-1.5 text-[11px] font-bold text-[#04110c] shadow-[0_0_12px_rgba(34,255,180,0.3)] transition hover:scale-105 active:scale-95 disabled:opacity-60 flex items-center gap-1.5 cursor-pointer"
                       >
-                        Pagar
+                        {payingBillId === bill.id ? (
+                          <>
+                            <span className="h-2.5 w-2.5 animate-spin rounded-full border-2 border-[#04110c] border-t-transparent inline-block" />
+                            <span>Baixando...</span>
+                          </>
+                        ) : (
+                          'Pagar'
+                        )}
                       </button>
                     </div>
                   </div>

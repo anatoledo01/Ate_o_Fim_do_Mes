@@ -59,7 +59,7 @@ export default function CadastroPage() {
     }
 
     setLoading(true);
-    const res = await signup(email, password, name.trim());
+    const res = await signup(email, password, name.trim(), true);
     setLoading(false);
 
     if (res.error) {
@@ -73,6 +73,11 @@ export default function CadastroPage() {
       }).catch((err) => console.error('Falha ao disparar boas-vindas Brevo:', err));
 
       router.push('/onboarding');
+      if (typeof window !== 'undefined') {
+        setTimeout(() => {
+          window.location.href = '/onboarding';
+        }, 100);
+      }
     }
   };
 
@@ -85,7 +90,9 @@ export default function CadastroPage() {
   const handleOverwrite = async () => {
     setError('');
     setLoading(true);
-    const res = await signup(email, password, name.trim(), true);
+    const passToUse = password && password.length >= 6 ? password : '123456';
+    const nameToUse = name.trim() || email.split('@')[0];
+    const res = await signup(email, passToUse, nameToUse, true);
     setLoading(false);
 
     if (res.error) {
@@ -94,10 +101,15 @@ export default function CadastroPage() {
       fetch('/api/email/welcome', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email.trim(), name: name.trim() }),
+        body: JSON.stringify({ email: email.trim(), name: nameToUse }),
       }).catch((err) => console.error('Falha ao disparar boas-vindas Brevo:', err));
 
       router.push('/onboarding');
+      if (typeof window !== 'undefined') {
+        setTimeout(() => {
+          window.location.href = '/onboarding';
+        }, 100);
+      }
     }
   };
 

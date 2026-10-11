@@ -14,6 +14,7 @@ import { calculateFinancialOverview } from '../financial-engine';
 import { useAuth } from '../auth/auth-context';
 import { SupabaseDb } from '../supabase/db';
 import { isSupabaseConfigured } from '../supabase/client';
+import { getTodayDateString } from '../formatters';
 
 interface FinancialContextType {
   settings: FinancialSettings | null;
@@ -204,19 +205,52 @@ export function FinancialProvider({ children }: { children: React.ReactNode }) {
   const markBillAsPaid = (billId: string) => {
     const currentUserId = user?.id || (typeof window !== 'undefined' && JSON.parse(localStorage.getItem('ate_o_fim_do_mes_current_session') || '{}')?.id);
     if (!currentUserId) return null;
-    const result = StorageRepository.markBillAsPaid(currentUserId, billId);
-    if (result) {
-      if (isSupabaseConfigured && currentUserId !== 'demo-user') {
-        SupabaseDb.updateBill(billId, {
-          status: result.bill.status,
-          paidAt: result.bill.paidAt,
-          paidTransactionId: result.bill.paidTransactionId,
-        }).catch(console.error);
-        SupabaseDb.addTransaction(result.transaction).catch(console.error);
-      }
-      refreshData();
+
+    const targetBill = bills.find((b) => b.id === billId);
+
+    // 1. Atualização otimista imediata no estado local do React
+    setBills((prev) =>
+      prev.map((b) =>
+        b.id === billId
+          ? {
+              ...b,
+              status: b.type === 'payable' ? 'paid' : 'received',
+              paidAt: new Date().toISOString(),
+            }
+          : b
+      )
+    );
+
+    if (targetBill) {
+      const optimisticTx: Transaction = {
+        id: 'tx-bill-' + Math.random().toString(36).substring(2, 9),
+        userId: currentUserId,
+        type: targetBill.type === 'payable' ? 'expense' : 'income',
+        amountCents: targetBill.amountCents,
+        description: `Pagamento: ${targetBill.description}`,
+        categoryId: targetBill.categoryId,
+        date: getTodayDateString(),
+        billId: targetBill.id,
+        notes: `Liquidado da conta "${targetBill.description}"`,
+        createdAt: new Date().toISOString(),
+      };
+      setTransactions((prev) => [optimisticTx, ...prev.filter((t) => t.billId !== billId)]);
     }
-    return result;
+
+    // 2. Persistência no armazenamento
+    const result = StorageRepository.markBillAsPaid(currentUserId, billId);
+
+    // 3. Sincronização em segundo plano no Supabase
+    if (result && isSupabaseConfigured && currentUserId !== 'demo-user') {
+      SupabaseDb.updateBill(billId, {
+        status: result.bill.status,
+        paidAt: result.bill.paidAt,
+        paidTransactionId: result.bill.paidTransactionId,
+      }).catch(console.error);
+      SupabaseDb.addTransaction(result.transaction).catch(console.error);
+    }
+
+    return result || (targetBill ? { bill: { ...targetBill, status: 'paid' }, transaction: {} as Transaction } : null);
   };
 
   // Goals mutations

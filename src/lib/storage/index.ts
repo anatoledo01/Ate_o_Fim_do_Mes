@@ -327,7 +327,29 @@ export const StorageRepository = {
    */
   markBillAsPaid(userId: string, billId: string): { bill: FinancialBill; transaction: Transaction } | null {
     const data = this.loadUserData(userId);
-    const bill = data.bills.find((b) => b.id === billId);
+    let bill = data.bills.find((b) => b.id === billId);
+
+    // Se não encontrou no userId primário, buscar em todas as chaves de usuário do localStorage (ex: criadas no onboarding)
+    if (!bill && typeof window !== 'undefined') {
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith(STORAGE_PREFIX) && k !== getStorageKey(userId)) {
+          try {
+            const otherData = JSON.parse(localStorage.getItem(k) || '{}');
+            const foundInOther = otherData.bills?.find((b: FinancialBill) => b.id === billId);
+            if (foundInOther) {
+              data.bills.push(foundInOther);
+              bill = foundInOther;
+              foundInOther.status = foundInOther.type === 'payable' ? 'paid' : 'received';
+              foundInOther.paidAt = new Date().toISOString();
+              localStorage.setItem(k, JSON.stringify(otherData));
+              break;
+            }
+          } catch {}
+        }
+      }
+    }
+
     if (!bill || bill.status === 'paid' || bill.status === 'received') {
       return null;
     }
@@ -464,16 +486,36 @@ export const StorageRepository = {
     if (typeof window === 'undefined') return false;
     const normalizedEmail = email.toLowerCase().trim();
     const accounts = this.getRegisteredAccounts();
-    if (accounts[normalizedEmail]) {
-      const userId = accounts[normalizedEmail].userId;
-      delete accounts[normalizedEmail];
-      localStorage.setItem('ate_o_fim_do_mes_auth_accounts', JSON.stringify(accounts));
-      if (userId) {
-        localStorage.removeItem('ate_o_fim_do_mes_user_' + userId);
+    let deleted = false;
+
+    // Delete exact and any case-insensitive variations
+    Object.keys(accounts).forEach((key) => {
+      if (key.toLowerCase().trim() === normalizedEmail) {
+        const userId = accounts[key].userId;
+        delete accounts[key];
+        if (userId) {
+          localStorage.removeItem('ate_o_fim_do_mes_user_' + userId);
+        }
+        deleted = true;
       }
-      return true;
+    });
+
+    if (deleted) {
+      localStorage.setItem('ate_o_fim_do_mes_auth_accounts', JSON.stringify(accounts));
     }
-    return false;
+
+    // Also clean up current user session if it matches this email
+    try {
+      const current = localStorage.getItem('ate_o_fim_do_mes_current_user');
+      if (current) {
+        const parsed = JSON.parse(current);
+        if (parsed.email && parsed.email.toLowerCase().trim() === normalizedEmail) {
+          localStorage.removeItem('ate_o_fim_do_mes_current_user');
+        }
+      }
+    } catch {}
+
+    return deleted;
   },
 
   registerAccount(
@@ -492,13 +534,14 @@ export const StorageRepository = {
     if (accounts[normalizedEmail] && !overwrite) {
       return { error: 'Este e-mail já está cadastrado. Faça login na sua conta.' };
     }
-    const userId = customUserId || ('usr_' + Math.random().toString(36).substring(2, 10));
+    const existingUserId = accounts[normalizedEmail]?.userId;
+    const userId = customUserId || existingUserId || ('usr_' + Math.random().toString(36).substring(2, 10));
     const newAccount = {
       userId,
       email: normalizedEmail,
       passwordHash: password ? btoa(password) : '',
       displayName: displayName || normalizedEmail.split('@')[0],
-      createdAt: new Date().toISOString(),
+      createdAt: accounts[normalizedEmail]?.createdAt || new Date().toISOString(),
     };
     accounts[normalizedEmail] = newAccount;
     localStorage.setItem('ate_o_fim_do_mes_auth_accounts', JSON.stringify(accounts));

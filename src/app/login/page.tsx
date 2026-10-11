@@ -55,6 +55,11 @@ export default function LoginPage() {
       setError(res.error);
     } else {
       router.push('/dashboard');
+      if (typeof window !== 'undefined') {
+        setTimeout(() => {
+          window.location.href = '/dashboard';
+        }, 100);
+      }
     }
   };
 

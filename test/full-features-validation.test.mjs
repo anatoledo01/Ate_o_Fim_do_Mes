@@ -528,5 +528,41 @@ test('12. Exclusão e Recriação Segura de Cadastro Existente (Overwrite)', () 
   assert.equal(getAccounts()['usuario@exemplo.com'], undefined);
 });
 
+test('13. Submissão de Cadastro com Desbloqueio Transparente (Sem travar o usuário)', () => {
+  const mockStorage = new Map();
+  const ACCOUNTS_KEY = 'ate_o_fim_do_mes_auth_accounts';
+
+  function getAccounts() {
+    return JSON.parse(mockStorage.get(ACCOUNTS_KEY) || '{}');
+  }
+
+  function simulateSignup(email, password, displayName, overwrite = true) {
+    const accounts = getAccounts();
+    const normalized = email.toLowerCase().trim();
+    if (accounts[normalized] && !overwrite) {
+      return { error: 'Este e-mail já está cadastrado. Faça login na sua conta.' };
+    }
+    const newAccount = {
+      userId: accounts[normalized]?.userId || ('usr_' + Date.now()),
+      email: normalized,
+      passwordHash: Buffer.from(password).toString('base64'),
+      displayName,
+    };
+    accounts[normalized] = newAccount;
+    mockStorage.set(ACCOUNTS_KEY, JSON.stringify(accounts));
+    return { account: newAccount };
+  }
+
+  // 1. Usuário já possuía uma conta gravada
+  simulateSignup('anatoledox01@gmail.com', 'senhaAntiga123', 'Ana Toledo', true);
+  assert(getAccounts()['anatoledox01@gmail.com']);
+
+  // 2. Ao tentar cadastrar novamente pelo formulário principal com overwrite habilitado:
+  const resultado = simulateSignup('anatoledox01@gmail.com', 'novaSenha456', 'Ana Toledo', true);
+  assert.equal(resultado.error, undefined);
+  assert.equal(resultado.account.email, 'anatoledox01@gmail.com');
+  assert.equal(resultado.account.passwordHash, Buffer.from('novaSenha456').toString('base64'));
+});
+
 
 

@@ -165,18 +165,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     email: string,
     password?: string,
     displayName?: string,
-    overwriteExisting: boolean = false
+    overwriteExisting: boolean = true
   ): Promise<{ error?: string }> => {
     setIsLoading(true);
     const normalizedEmail = email.toLowerCase().trim();
 
-    // Se o usuário solicitou sobrescrever, limpa registros prévios desse e-mail
+    // Se o usuário solicitou sobrescrever (ou padrão), limpa registros prévios desse e-mail
     if (overwriteExisting) {
       StorageRepository.deleteRegisteredAccount(normalizedEmail);
     }
 
-    // 1. Bloqueio prévio: verificar se o e-mail já existe no dispositivo local
+    // 1. Bloqueio prévio: verificar se o e-mail já existe no dispositivo local (apenas se overwriteExisting for falso)
     if (!overwriteExisting && StorageRepository.isEmailRegistered(normalizedEmail)) {
+      // Se a senha bater com o registro existente, faz login automaticamente!
+      if (password) {
+        const verify = StorageRepository.verifyCredentials(normalizedEmail, password);
+        if (!verify.error && verify.account) {
+          const profile = StorageRepository.getProfile(verify.account.userId);
+          if (profile) {
+            setUser(profile);
+            setIsDemoMode(false);
+            localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(profile));
+            setIsLoading(false);
+            return {};
+          }
+        }
+      }
       setIsLoading(false);
       return { error: 'Este e-mail já está cadastrado. Faça login na sua conta.' };
     }
@@ -191,39 +205,103 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         },
       });
 
-      if (error && !overwriteExisting) {
-        setIsLoading(false);
-        const errMsg = error.message.toLowerCase();
-        if (
-          errMsg.includes('already registered') ||
-          errMsg.includes('already exists') ||
-          errMsg.includes('unique') ||
-          errMsg.includes('duplicate') ||
-          error.status === 422 ||
-          error.status === 400
-        ) {
+      const isDuplicateInSupabase =
+        Boolean(
+          error &&
+          (error.message.toLowerCase().includes('already registered') ||
+           error.message.toLowerCase().includes('already exists') ||
+           error.message.toLowerCase().includes('unique') ||
+           error.message.toLowerCase().includes('duplicate') ||
+           error.status === 422 ||
+           error.status === 400)
+        ) ||
+        Boolean(data?.user && Array.isArray(data.user.identities) && data.user.identities.length === 0);
+
+      if (isDuplicateInSupabase) {
+        // Tenta autenticar diretamente no Supabase com a senha fornecida
+        const loginRes = await supabase.auth.signInWithPassword({
+          email: normalizedEmail,
+          password,
+        });
+
+        if (loginRes.data?.user) {
+          let profile = StorageRepository.getProfile(loginRes.data.user.id);
+          if (!profile) {
+            const initial = createInitialUserData(
+              loginRes.data.user.id,
+              normalizedEmail,
+              displayName || normalizedEmail.split('@')[0]
+            );
+            StorageRepository.saveUserData(loginRes.data.user.id, initial);
+            profile = initial.profile;
+          }
+
+          StorageRepository.registerAccount(
+            normalizedEmail,
+            password,
+            displayName || normalizedEmail.split('@')[0],
+            loginRes.data.user.id,
+            true
+          );
+
+          setUser(profile);
+          setIsDemoMode(false);
+          localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(profile));
+          setIsLoading(false);
+          return {};
+        }
+
+        // Se a senha no Supabase não coincidiu mas overwriteExisting for true:
+        if (overwriteExisting) {
+          const reg = StorageRepository.registerAccount(
+            normalizedEmail,
+            password,
+            displayName || normalizedEmail.split('@')[0],
+            undefined,
+            true
+          );
+
+          if (reg.account) {
+            const initial = createInitialUserData(
+              reg.account.userId,
+              normalizedEmail,
+              displayName || normalizedEmail.split('@')[0]
+            );
+            StorageRepository.saveUserData(reg.account.userId, initial);
+            setUser(initial.profile);
+            setIsDemoMode(false);
+            localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(initial.profile));
+            setIsLoading(false);
+            return {};
+          }
+        }
+
+        if (!overwriteExisting) {
+          setIsLoading(false);
           return { error: 'Este e-mail já está cadastrado. Faça login na sua conta.' };
         }
+      }
+
+      if (error && !overwriteExisting) {
+        setIsLoading(false);
         return { error: error.message };
       }
 
-      // Detecção de duplicidade do Supabase Auth (anti-user enumeration):
-      if (!overwriteExisting && data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
-        setIsLoading(false);
-        return { error: 'Este e-mail já está cadastrado. Faça login na sua conta.' };
-      }
-
-      if (data.user) {
-        // Registrar a conta no armazenamento local para impedir qualquer tentativa futura de duplicidade
+      if (data?.user) {
+        // Registrar a conta no armazenamento local
         StorageRepository.registerAccount(
           normalizedEmail,
           password,
           displayName || normalizedEmail.split('@')[0],
           data.user.id,
-          overwriteExisting
+          true
         );
 
-        const initial = createInitialUserData(data.user.id, normalizedEmail, displayName || normalizedEmail.split('@')[0]);
+        const initial = createInitialUserData(
+          data.user.id,
+          normalizedEmail,
+          displayName || normalizedEmail.split('@')[0]
+        );
         StorageRepository.saveUserData(data.user.id, initial);
         setUser(initial.profile);
         setIsDemoMode(false);

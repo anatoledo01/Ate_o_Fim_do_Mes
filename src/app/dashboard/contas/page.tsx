@@ -49,10 +49,8 @@ export default function ContasPage() {
     });
   }, [bills, activeTab]);
 
-  const handlePay = (billId: string, desc: string) => {
-    if (confirm(`Confirmar liquidação de "${desc}"? Isso registrará o pagamento e atualizará seu saldo sem duplicar cobranças.`)) {
-      markBillAsPaid(billId);
-    }
+  const handlePay = (billId: string, _desc?: string) => {
+    markBillAsPaid(billId);
   };
 
   const handleDelete = (billId: string, desc: string) => {
