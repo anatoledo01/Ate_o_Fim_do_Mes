@@ -45,6 +45,13 @@ export default function CadastroPage() {
     if (res.error) {
       setError(res.error);
     } else {
+      // Disparar e-mail de boas-vindas via Brevo em segundo plano
+      fetch('/api/email/welcome', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim(), name: name.trim() }),
+      }).catch((err) => console.error('Falha ao disparar boas-vindas Brevo:', err));
+
       router.push('/onboarding');
     }
   };

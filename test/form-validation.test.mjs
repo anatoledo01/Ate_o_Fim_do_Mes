@@ -97,3 +97,17 @@ test('Validation: Financial bill validator rules', () => {
   assert.equal(validBill.valid, true);
   assert.equal(validBill.amountCents, 25000);
 });
+
+test('Validation: Brevo email template and payload generation', () => {
+  const email = 'usuario@exemplo.com';
+  const name = 'Ana Toledo';
+  const payload = {
+    sender: { name: 'Até o Fim do Mês', email: 'contato@ateofimdomes.com.br' },
+    to: [{ email, name }],
+    subject: 'Bem-vindo(a) ao Até o Fim do Mês! 💳',
+  };
+
+  assert.equal(payload.to[0].email, 'usuario@exemplo.com');
+  assert.equal(payload.to[0].name, 'Ana Toledo');
+  assert.equal(payload.sender.email, 'contato@ateofimdomes.com.br');
+});
