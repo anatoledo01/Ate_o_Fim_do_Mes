@@ -82,6 +82,18 @@ export async function sendBrevoEmail({
 }
 
 /**
+ * Public base URL of the app, taken from env only (never from request headers,
+ * to avoid host-header injection in links sent by e-mail).
+ */
+export function getAppBaseUrl(): string {
+  return (
+    process.env.NEXT_PUBLIC_APP_URL
+    || (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : null)
+    || 'https://ateofimdomes.vercel.app'
+  ).replace(/\/$/, '');
+}
+
+/**
  * Builds high-converting, cyber-space aesthetic HTML template
  * matching the Até o Fim do Mês visual identity:
  * - #07081a dark deep space background
@@ -93,9 +105,7 @@ export async function sendBrevoEmail({
  */
 export function buildWelcomeEmailHtml(name: string): string {
   const safeName = name ? name.trim() : 'Membro';
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL
-    || (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : null)
-    || 'https://ateofimdomes.vercel.app';
+  const baseUrl = getAppBaseUrl();
   const loginUrl = `${baseUrl}/login`;
 
   return `
@@ -224,6 +234,73 @@ export function buildWelcomeEmailHtml(name: string): string {
             </td>
           </tr>
 
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+  `.trim();
+}
+
+/**
+ * Password reset e-mail (sent via Brevo instead of Supabase's default mailer).
+ */
+export function buildResetPasswordEmailHtml(resetUrl: string): string {
+  return `
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Redefina sua senha</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #07081a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; color: #f2f1fa;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #07081a; padding: 40px 12px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width: 520px; background-color: #0e1026; border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 28px; overflow: hidden;">
+          <tr>
+            <td style="height: 4px; background: linear-gradient(90deg, #ff4fd8, #5b8cff, #22ffb4); line-height: 4px; font-size: 0;">&nbsp;</td>
+          </tr>
+          <tr>
+            <td style="padding: 40px 32px 8px 32px; text-align: center;">
+              <p style="margin: 0; font-size: 11px; font-weight: 700; color: #22ffb4; font-family: 'SF Mono', Monaco, Consolas, monospace; letter-spacing: 1.5px; text-transform: uppercase;">
+                Até o Fim do Mês
+              </p>
+              <h1 style="margin: 16px 0 0 0; font-size: 24px; font-weight: 800; color: #ffffff; letter-spacing: -0.5px;">
+                Redefina sua senha
+              </h1>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 16px 36px 0 36px; text-align: center;">
+              <p style="margin: 0; font-size: 14px; line-height: 1.65; color: #c9c8e2;">
+                Recebemos um pedido para redefinir a senha da sua conta. Toque no botão abaixo para escolher uma nova senha.
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 30px 36px; text-align: center;">
+              <a href="${resetUrl}" style="display: inline-block; background: linear-gradient(135deg, #22ffb4 0%, #1bd697 100%); color: #04110c; padding: 15px 36px; border-radius: 16px; font-weight: 800; font-size: 14px; text-decoration: none; font-family: monospace; letter-spacing: 0.5px;">
+                CRIAR NOVA SENHA &rarr;
+              </a>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 0 36px 32px 36px; text-align: center;">
+              <p style="margin: 0; font-size: 12px; line-height: 1.6; color: #a9a8c6;">
+                O link expira em 1 hora e só pode ser usado uma vez. Se você não pediu essa alteração, ignore este e-mail. Sua senha continua a mesma.
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td style="background-color: #07081a; padding: 22px 36px; text-align: center; border-top: 1px solid rgba(255, 255, 255, 0.08);">
+              <span style="font-size: 11px; font-family: monospace; color: #8281a8;">
+                Desenvolvido por <strong style="color: #ffffff;">Ana Toledo</strong>
+              </span>
+            </td>
+          </tr>
         </table>
       </td>
     </tr>

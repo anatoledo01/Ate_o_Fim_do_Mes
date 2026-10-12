@@ -1,5 +1,11 @@
 /** Routes that always render in dark mode, regardless of the user's saved theme. */
-export const FORCED_DARK_ROUTES = ['/', '/login', '/cadastro'];
+export const FORCED_DARK_ROUTES = [
+  '/',
+  '/login',
+  '/cadastro',
+  '/recuperar-senha',
+  '/redefinir-senha',
+];
 
 export function isForcedDarkRoute(pathname: string | null | undefined): boolean {
   if (!pathname) return false;

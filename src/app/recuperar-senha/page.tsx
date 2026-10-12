@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { CreditFooter } from '@/components/credit-footer';
 import { ArrowLeft, Mail, CheckCircle2 } from 'lucide-react';
-import { supabase, isSupabaseConfigured } from '@/lib/supabase/client';
+import { isSupabaseConfigured } from '@/lib/supabase/client';
 
 export default function RecuperarSenhaPage() {
   const [email, setEmail] = useState('');
@@ -22,10 +22,21 @@ export default function RecuperarSenhaPage() {
     }
 
     setLoading(true);
-    if (isSupabaseConfigured && supabase) {
-      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email);
-      if (resetError) {
-        setError(resetError.message);
+    if (isSupabaseConfigured) {
+      try {
+        const res = await fetch('/api/auth/reset-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email }),
+        });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          setError(data.error || 'Não foi possível enviar o e-mail. Tente novamente.');
+          setLoading(false);
+          return;
+        }
+      } catch {
+        setError('Falha de conexão. Verifique sua internet e tente novamente.');
         setLoading(false);
         return;
       }
@@ -35,7 +46,7 @@ export default function RecuperarSenhaPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-between bg-[#07081a] text-[#f2f1fa] relative overflow-hidden">
+    <div className="dark min-h-screen flex flex-col justify-between bg-[#07081a] text-[#f2f1fa] relative overflow-hidden">
       <div className="ambient-glow -z-10" />
 
       <header className="p-6">
