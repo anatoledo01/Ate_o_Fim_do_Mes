@@ -282,13 +282,18 @@ export const StorageRepository = {
 
   // Bills
   getBills(userId: string): FinancialBill[] {
-    return this.loadUserData(userId).bills;
+    const bills = this.loadUserData(userId).bills || [];
+    return bills.map((b) => ({
+      ...b,
+      status: b.status || ((b as unknown as { isPaid?: boolean }).isPaid ? 'paid' : 'pending'),
+    }));
   },
 
   addBill(userId: string, bill: Omit<FinancialBill, 'id' | 'userId' | 'createdAt'>): FinancialBill {
     const data = this.loadUserData(userId);
     const newBill: FinancialBill = {
       ...bill,
+      status: bill.status || ((bill as unknown as { isPaid?: boolean }).isPaid ? 'paid' : 'pending'),
       id: 'bill-' + Math.random().toString(36).substring(2, 9),
       userId,
       createdAt: new Date().toISOString(),

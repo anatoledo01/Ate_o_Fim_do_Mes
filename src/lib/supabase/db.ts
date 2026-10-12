@@ -118,6 +118,21 @@ export const SupabaseDb = {
     });
   },
 
+  async updateTransaction(id: string, updates: Partial<Transaction>): Promise<void> {
+    if (!isSupabaseConfigured || !supabase) return;
+    const mapped: Record<string, unknown> = {};
+    if (updates.type !== undefined) mapped.type = updates.type;
+    if (updates.amountCents !== undefined) mapped.amount_cents = updates.amountCents;
+    if (updates.description !== undefined) mapped.description = updates.description;
+    if (updates.categoryId !== undefined) mapped.category_id = updates.categoryId;
+    if (updates.date !== undefined) mapped.date = updates.date;
+    if (updates.notes !== undefined) mapped.notes = updates.notes;
+    if (updates.billId !== undefined) mapped.bill_id = updates.billId;
+    if (Object.keys(mapped).length === 0) return;
+
+    await supabase.from('transactions').update(mapped).eq('id', id);
+  },
+
   async deleteTransaction(id: string): Promise<void> {
     if (!isSupabaseConfigured || !supabase) return;
     await supabase.from('transactions').delete().eq('id', id);

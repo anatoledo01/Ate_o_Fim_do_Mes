@@ -56,7 +56,12 @@ export function FinancialProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   const refreshData = useCallback(async () => {
-    if (!user) {
+    const currentUserId =
+      user?.id ||
+      (typeof window !== 'undefined' &&
+        JSON.parse(localStorage.getItem('ate_o_fim_do_mes_current_session') || '{}')?.id);
+
+    if (!currentUserId) {
       setSettings(null);
       setTransactions([]);
       setBills([]);
@@ -67,20 +72,20 @@ export function FinancialProvider({ children }: { children: React.ReactNode }) {
     }
 
     // 1. Instant local load
-    let loadedSettings = StorageRepository.getSettings(user.id);
-    let loadedTx = StorageRepository.getTransactions(user.id);
-    let loadedBills = StorageRepository.getBills(user.id);
-    let loadedGoals = StorageRepository.getGoals(user.id);
-    const loadedCats = StorageRepository.getAllCategories(user.id);
+    let loadedSettings = StorageRepository.getSettings(currentUserId);
+    let loadedTx = StorageRepository.getTransactions(currentUserId);
+    let loadedBills = StorageRepository.getBills(currentUserId);
+    let loadedGoals = StorageRepository.getGoals(currentUserId);
+    const loadedCats = StorageRepository.getAllCategories(currentUserId);
 
     // 2. If Supabase is configured, load from PostgreSQL tables and update cache
-    if (isSupabaseConfigured && user.id !== 'demo-user') {
+    if (isSupabaseConfigured && currentUserId !== 'demo-user') {
       try {
         const [cloudSettings, cloudTx, cloudBills, cloudGoals] = await Promise.all([
-          SupabaseDb.getSettings(user.id),
-          SupabaseDb.getTransactions(user.id),
-          SupabaseDb.getBills(user.id),
-          SupabaseDb.getGoals(user.id),
+          SupabaseDb.getSettings(currentUserId),
+          SupabaseDb.getTransactions(currentUserId),
+          SupabaseDb.getBills(currentUserId),
+          SupabaseDb.getGoals(currentUserId),
         ]);
 
         if (cloudSettings) loadedSettings = cloudSettings;
@@ -135,75 +140,108 @@ export function FinancialProvider({ children }: { children: React.ReactNode }) {
     });
   }, [settings, transactions, bills]);
 
-  // Transaction mutations
+  // Transaction mutations - Instant Optimistic State Updates
   const addTransaction = (tx: Omit<Transaction, 'id' | 'userId' | 'createdAt'>) => {
-    const currentUserId = user?.id || (typeof window !== 'undefined' && JSON.parse(localStorage.getItem('ate_o_fim_do_mes_current_session') || '{}')?.id);
+    const currentUserId =
+      user?.id ||
+      (typeof window !== 'undefined' &&
+        JSON.parse(localStorage.getItem('ate_o_fim_do_mes_current_session') || '{}')?.id);
     if (!currentUserId) {
       console.warn('Operação cancelada: usuário não identificado.');
       return { ...tx, id: 'temp-' + Date.now(), userId: '', createdAt: new Date().toISOString() };
     }
     const created = StorageRepository.addTransaction(currentUserId, tx);
+    // Atualização imediata no estado do React
+    setTransactions((prev) => [created, ...prev]);
     if (isSupabaseConfigured && currentUserId !== 'demo-user') {
       SupabaseDb.addTransaction(created).catch(console.error);
     }
-    refreshData();
     return created;
   };
 
   const updateTransaction = (id: string, updates: Partial<Transaction>) => {
-    const currentUserId = user?.id || (typeof window !== 'undefined' && JSON.parse(localStorage.getItem('ate_o_fim_do_mes_current_session') || '{}')?.id);
+    const currentUserId =
+      user?.id ||
+      (typeof window !== 'undefined' &&
+        JSON.parse(localStorage.getItem('ate_o_fim_do_mes_current_session') || '{}')?.id);
     if (!currentUserId) return;
     StorageRepository.updateTransaction(currentUserId, id, updates);
-    refreshData();
+    setTransactions((prev) =>
+      prev.map((t) => (t.id === id ? { ...t, ...updates } : t))
+    );
+    if (isSupabaseConfigured && currentUserId !== 'demo-user') {
+      SupabaseDb.updateTransaction(id, updates).catch(console.error);
+    }
   };
 
   const deleteTransaction = (id: string) => {
-    const currentUserId = user?.id || (typeof window !== 'undefined' && JSON.parse(localStorage.getItem('ate_o_fim_do_mes_current_session') || '{}')?.id);
+    const currentUserId =
+      user?.id ||
+      (typeof window !== 'undefined' &&
+        JSON.parse(localStorage.getItem('ate_o_fim_do_mes_current_session') || '{}')?.id);
     if (!currentUserId) return;
     StorageRepository.deleteTransaction(currentUserId, id);
+    setTransactions((prev) => prev.filter((t) => t.id !== id));
     if (isSupabaseConfigured && currentUserId !== 'demo-user') {
       SupabaseDb.deleteTransaction(id).catch(console.error);
     }
-    refreshData();
   };
 
-  // Bills mutations
+  // Bills mutations - Instant Optimistic State Updates
   const addBill = (bill: Omit<FinancialBill, 'id' | 'userId' | 'createdAt'>) => {
-    const currentUserId = user?.id || (typeof window !== 'undefined' && JSON.parse(localStorage.getItem('ate_o_fim_do_mes_current_session') || '{}')?.id);
+    const currentUserId =
+      user?.id ||
+      (typeof window !== 'undefined' &&
+        JSON.parse(localStorage.getItem('ate_o_fim_do_mes_current_session') || '{}')?.id);
     if (!currentUserId) {
       console.warn('Operação cancelada: usuário não identificado.');
       return { ...bill, id: 'temp-' + Date.now(), userId: '', createdAt: new Date().toISOString() };
     }
-    const created = StorageRepository.addBill(currentUserId, bill);
+    const created = StorageRepository.addBill(currentUserId, {
+      ...bill,
+      status: bill.status || 'pending',
+    });
+    // Atualização imediata no estado do React
+    setBills((prev) => [...prev, created]);
     if (isSupabaseConfigured && currentUserId !== 'demo-user') {
       SupabaseDb.addBill(created).catch(console.error);
     }
-    refreshData();
     return created;
   };
 
   const updateBill = (id: string, updates: Partial<FinancialBill>) => {
-    const currentUserId = user?.id || (typeof window !== 'undefined' && JSON.parse(localStorage.getItem('ate_o_fim_do_mes_current_session') || '{}')?.id);
+    const currentUserId =
+      user?.id ||
+      (typeof window !== 'undefined' &&
+        JSON.parse(localStorage.getItem('ate_o_fim_do_mes_current_session') || '{}')?.id);
     if (!currentUserId) return;
     StorageRepository.updateBill(currentUserId, id, updates);
+    setBills((prev) =>
+      prev.map((b) => (b.id === id ? { ...b, ...updates } : b))
+    );
     if (isSupabaseConfigured && currentUserId !== 'demo-user') {
       SupabaseDb.updateBill(id, updates).catch(console.error);
     }
-    refreshData();
   };
 
   const deleteBill = (id: string) => {
-    const currentUserId = user?.id || (typeof window !== 'undefined' && JSON.parse(localStorage.getItem('ate_o_fim_do_mes_current_session') || '{}')?.id);
+    const currentUserId =
+      user?.id ||
+      (typeof window !== 'undefined' &&
+        JSON.parse(localStorage.getItem('ate_o_fim_do_mes_current_session') || '{}')?.id);
     if (!currentUserId) return;
     StorageRepository.deleteBill(currentUserId, id);
+    setBills((prev) => prev.filter((b) => b.id !== id));
     if (isSupabaseConfigured && currentUserId !== 'demo-user') {
       SupabaseDb.deleteBill(id).catch(console.error);
     }
-    refreshData();
   };
 
   const markBillAsPaid = (billId: string) => {
-    const currentUserId = user?.id || (typeof window !== 'undefined' && JSON.parse(localStorage.getItem('ate_o_fim_do_mes_current_session') || '{}')?.id);
+    const currentUserId =
+      user?.id ||
+      (typeof window !== 'undefined' &&
+        JSON.parse(localStorage.getItem('ate_o_fim_do_mes_current_session') || '{}')?.id);
     if (!currentUserId) return null;
 
     const targetBill = bills.find((b) => b.id === billId);
@@ -253,47 +291,65 @@ export function FinancialProvider({ children }: { children: React.ReactNode }) {
     return result || (targetBill ? { bill: { ...targetBill, status: 'paid' }, transaction: {} as Transaction } : null);
   };
 
-  // Goals mutations
+  // Goals mutations - Instant Optimistic State Updates
   const addGoal = (goal: Omit<FinancialGoal, 'id' | 'userId' | 'createdAt'>) => {
-    const currentUserId = user?.id || (typeof window !== 'undefined' && JSON.parse(localStorage.getItem('ate_o_fim_do_mes_current_session') || '{}')?.id);
+    const currentUserId =
+      user?.id ||
+      (typeof window !== 'undefined' &&
+        JSON.parse(localStorage.getItem('ate_o_fim_do_mes_current_session') || '{}')?.id);
     if (!currentUserId) {
       console.warn('Operação cancelada: usuário não identificado.');
       return { ...goal, id: 'temp-' + Date.now(), userId: '', createdAt: new Date().toISOString() };
     }
     const created = StorageRepository.addGoal(currentUserId, goal);
+    // Atualização imediata no estado do React
+    setGoals((prev) => [...prev, created]);
     if (isSupabaseConfigured && currentUserId !== 'demo-user') {
       SupabaseDb.addGoal(created).catch(console.error);
     }
-    refreshData();
     return created;
   };
 
   const updateGoal = (id: string, updates: Partial<FinancialGoal>) => {
-    if (!user) return;
-    StorageRepository.updateGoal(user.id, id, updates);
-    if (isSupabaseConfigured && user.id !== 'demo-user') {
+    const currentUserId =
+      user?.id ||
+      (typeof window !== 'undefined' &&
+        JSON.parse(localStorage.getItem('ate_o_fim_do_mes_current_session') || '{}')?.id);
+    if (!currentUserId) return;
+    StorageRepository.updateGoal(currentUserId, id, updates);
+    setGoals((prev) =>
+      prev.map((g) => (g.id === id ? { ...g, ...updates } : g))
+    );
+    if (isSupabaseConfigured && currentUserId !== 'demo-user') {
       SupabaseDb.updateGoal(id, updates).catch(console.error);
     }
-    refreshData();
   };
 
   const deleteGoal = (id: string) => {
-    if (!user) return;
-    StorageRepository.deleteGoal(user.id, id);
-    if (isSupabaseConfigured && user.id !== 'demo-user') {
+    const currentUserId =
+      user?.id ||
+      (typeof window !== 'undefined' &&
+        JSON.parse(localStorage.getItem('ate_o_fim_do_mes_current_session') || '{}')?.id);
+    if (!currentUserId) return;
+    StorageRepository.deleteGoal(currentUserId, id);
+    setGoals((prev) => prev.filter((g) => g.id !== id));
+    if (isSupabaseConfigured && currentUserId !== 'demo-user') {
       SupabaseDb.deleteGoal(id).catch(console.error);
     }
-    refreshData();
   };
 
-  // Settings
+  // Settings - Instant Optimistic State Updates
   const updateSettings = (updates: Partial<FinancialSettings>) => {
-    if (!user) return;
-    const updated = StorageRepository.updateSettings(user.id, updates);
-    if (isSupabaseConfigured && user.id !== 'demo-user') {
+    const currentUserId =
+      user?.id ||
+      (typeof window !== 'undefined' &&
+        JSON.parse(localStorage.getItem('ate_o_fim_do_mes_current_session') || '{}')?.id);
+    if (!currentUserId) return;
+    const updated = StorageRepository.updateSettings(currentUserId, updates);
+    setSettings(updated);
+    if (isSupabaseConfigured && currentUserId !== 'demo-user') {
       SupabaseDb.saveSettings(updated).catch(console.error);
     }
-    refreshData();
   };
 
   // Export

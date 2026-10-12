@@ -46,7 +46,7 @@ export function BillModal({ isOpen, onClose }: BillModalProps) {
       dueDate,
       recurrence,
       categoryId,
-      isPaid: false,
+      status: 'pending',
     });
 
     setAmountStr('');
