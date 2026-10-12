@@ -48,6 +48,7 @@ export default function RootLayout({
             __html: `(function() {
               try {
                 var t = localStorage.getItem('ate_o_fim_do_mes_theme');
+                if (window.location.pathname === '/') t = 'dark';
                 if (t === 'dark') {
                   document.documentElement.classList.add('dark');
                   document.documentElement.classList.remove('light');

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 
 export type Theme = 'dark' | 'light';
 
@@ -14,8 +15,14 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const THEME_STORAGE_KEY = 'ate_o_fim_do_mes_theme';
 
+/** Routes that always render in dark mode, regardless of user preference. */
+const FORCED_DARK_ROUTES = ['/'];
+
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>('light');
+  const [isReady, setIsReady] = useState(false);
+  const pathname = usePathname();
+  const isForcedDark = FORCED_DARK_ROUTES.includes(pathname ?? '');
 
   useEffect(() => {
     const saved = localStorage.getItem(THEME_STORAGE_KEY) as Theme | null;
@@ -25,8 +32,13 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     }
 
     setThemeState(initial);
-    applyThemeClass(initial);
+    setIsReady(true);
   }, []);
+
+  useEffect(() => {
+    if (!isReady) return;
+    applyThemeClass(isForcedDark ? 'dark' : theme);
+  }, [theme, isForcedDark, isReady]);
 
   const applyThemeClass = (newTheme: Theme) => {
     if (typeof document === 'undefined') return;
@@ -42,7 +54,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   const setTheme = (newTheme: Theme) => {
     setThemeState(newTheme);
-    applyThemeClass(newTheme);
     try {
       localStorage.setItem(THEME_STORAGE_KEY, newTheme);
     } catch {}

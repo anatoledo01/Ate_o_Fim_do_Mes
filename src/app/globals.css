@@ -792,4 +792,25 @@ html.light input[type="date"]::-webkit-calendar-picker-indicator {
   -webkit-transform: translateZ(0) !important;
 }
 
+/* Modals must strictly be layered above the fixed bottom navigation bar (z-50) */
+.app-modal-backdrop {
+  z-index: 100 !important;
+  position: fixed !important;
+  inset: 0 !important;
+}
+
+.custom-modal-scrollbar::-webkit-scrollbar {
+  width: 5px;
+}
+.custom-modal-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-modal-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(140, 140, 160, 0.25);
+  border-radius: 9999px;
+}
+.custom-modal-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(140, 140, 160, 0.45);
+}
+
 
