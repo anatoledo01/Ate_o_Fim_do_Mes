@@ -137,10 +137,10 @@ export function CategoryDonutChart({
 
         {/* Center label */}
         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-          <span className="text-[10px] uppercase font-mono-tech tracking-wider text-[#8f8ea8]">
+          <span className="text-[10px] uppercase tracking-wider text-slate-400 dark:text-slate-400 font-medium">
             Despesas
           </span>
-          <span className="text-xs font-bold text-white font-mono-tech">
+          <span className="text-xs font-bold text-slate-900 dark:text-white font-sora">
             {hideValues ? '••••' : '100%'}
           </span>
         </div>
@@ -160,16 +160,16 @@ export function CategoryDonutChart({
                   className="h-2.5 w-2.5 shrink-0 rounded-full shadow-xs"
                   style={{ backgroundColor: color }}
                 />
-                <span className="truncate font-medium text-[#f2f1fa] text-xs">
+                <span className="truncate font-medium text-slate-800 dark:text-white text-xs">
                   {item.name}
                 </span>
               </div>
 
-              <div className="flex items-center gap-2 shrink-0 font-mono-tech text-right">
-                <span className="font-semibold text-white">
+              <div className="flex items-center gap-2 shrink-0 text-right">
+                <span className="font-semibold text-slate-900 dark:text-white font-sora">
                   {hideValues ? '••••••' : formatCurrency(item.totalCents)}
                 </span>
-                <span className="text-[10px] text-[#8f8ea8] w-7 text-right">
+                <span className="text-[10px] text-slate-400 dark:text-slate-500 w-7 text-right">
                   {item.percentage}%
                 </span>
               </div>

@@ -26,18 +26,18 @@ export function ConfirmPaymentModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fade-in">
-      <div className="tech-card tech-modal-card beam-card w-full max-w-sm p-6 relative space-y-5 animate-in fade-in zoom-in-95 border border-white/10 shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
+      <div className="bg-white dark:bg-[#121324] border border-slate-100 dark:border-slate-800/80 rounded-3xl w-full max-w-sm p-6 relative space-y-5 shadow-2xl animate-in fade-in zoom-in-95">
         {/* Top Icon & Close */}
         <div className="flex items-center justify-between">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-tr from-[#22ffb4]/20 to-[#5b8cff]/20 text-[#22ffb4] border border-[#22ffb4]/40 shadow-[0_0_15px_rgba(34,255,180,0.3)]">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-800/40">
             <Receipt className="h-5 w-5 stroke-[2.2]" />
           </div>
           <button
             type="button"
             onClick={onClose}
             disabled={isPaying}
-            className="rounded-xl p-1.5 text-[#8f8ea8] hover:text-white hover:bg-white/10 transition"
+            className="rounded-full p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 transition cursor-pointer"
           >
             <X className="h-4 w-4" />
           </button>
@@ -45,33 +45,33 @@ export function ConfirmPaymentModal({
 
         {/* Question & Title */}
         <div className="space-y-1">
-          <h3 className="text-base font-extrabold text-white font-sora">
+          <h3 className="text-base font-bold text-slate-900 dark:text-white font-sora">
             Confirmar Pagamento
           </h3>
-          <p className="text-xs text-[#c9c8e2]">
+          <p className="text-xs text-slate-500 dark:text-slate-400">
             Tem certeza que deseja pagar esta conta?
           </p>
         </div>
 
         {/* Bill Summary Card */}
-        <div className="rounded-2xl border border-white/10 bg-white/5 tech-toggle-group p-4 space-y-2.5">
+        <div className="rounded-2xl border border-slate-100 dark:border-slate-800 bg-slate-50/80 dark:bg-white/5 p-4 space-y-2.5">
           <div className="flex items-start justify-between gap-2">
-            <span className="text-xs font-semibold text-white truncate">
+            <span className="text-xs font-semibold text-slate-900 dark:text-white truncate">
               {billDescription || 'Conta sem descrição'}
             </span>
             {billDueDate && (
-              <span className="text-[10px] font-mono-tech text-[#8f8ea8] shrink-0">
+              <span className="text-[10px] text-slate-500 dark:text-slate-400 shrink-0">
                 Venc. {formatDateBR(billDueDate)}
               </span>
             )}
           </div>
 
-          <div className="text-2xl font-black font-mono-tech text-[#22ffb4] tracking-tight">
+          <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400 font-sora tracking-tight">
             {formatCurrency(billAmountCents)}
           </div>
 
-          <p className="text-[11px] font-mono-tech text-[#8f8ea8] pt-1 border-t border-white/5">
-            O valor será baixado e deduzido do seu planejamento diário.
+          <p className="text-[11px] text-slate-500 dark:text-slate-400 pt-1 border-t border-slate-200/60 dark:border-white/5">
+            O valor será marcado como quitado e baixado do seu orçamento pendente.
           </p>
         </div>
 
@@ -81,7 +81,7 @@ export function ConfirmPaymentModal({
             type="button"
             onClick={onClose}
             disabled={isPaying}
-            className="flex-1 btn-tech-ghost !py-2.5 !text-xs"
+            className="flex-1 rounded-2xl border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 py-3 text-xs font-semibold transition cursor-pointer"
           >
             Cancelar
           </button>
@@ -89,17 +89,17 @@ export function ConfirmPaymentModal({
             type="button"
             onClick={onConfirm}
             disabled={isPaying}
-            className="flex-1 btn-tech-primary !py-2.5 !text-xs cursor-pointer"
+            className="flex-1 rounded-2xl bg-[#121324] hover:bg-[#1e2038] dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white py-3 text-xs font-semibold shadow-md transition cursor-pointer disabled:opacity-50"
           >
             {isPaying ? (
               <span className="flex items-center justify-center gap-1.5">
-                <span className="h-3 w-3 animate-spin rounded-full border-2 border-[#04110c] border-t-transparent" />
+                <span className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent" />
                 <span>Liquidando...</span>
               </span>
             ) : (
               <span className="flex items-center justify-center gap-1.5">
-                <CheckCircle2 className="h-3.5 w-3.5" />
-                <span>Sim, Pagar</span>
+                <CheckCircle2 className="h-4 w-4" />
+                <span>Sim, pagar</span>
               </span>
             )}
           </button>

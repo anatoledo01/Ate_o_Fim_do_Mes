@@ -2,8 +2,9 @@
 
 import React, { useState } from 'react';
 import { useFinancial } from '@/lib/context/financial-context';
-import { getTodayDateString, parseCurrencyToCents, formatCurrencyInput } from '@/lib/formatters';
-import { X, Receipt } from 'lucide-react';
+import { parseCurrencyToCents, formatCurrencyInput } from '@/lib/formatters';
+import { BillType } from '@/lib/types';
+import { X, Receipt, ArrowDownRight, ArrowUpRight } from 'lucide-react';
 
 interface BillModalProps {
   isOpen: boolean;
@@ -11,39 +12,41 @@ interface BillModalProps {
 }
 
 export function BillModal({ isOpen, onClose }: BillModalProps) {
-  const { addBill, categories } = useFinancial();
-  const [type, setType] = useState<'payable' | 'receivable'>('payable');
+  const { categories, addBill } = useFinancial();
+
+  const [type, setType] = useState<BillType>('payable');
   const [amountStr, setAmountStr] = useState('');
   const [description, setDescription] = useState('');
-  const [dueDate, setDueDate] = useState(getTodayDateString());
-  const [categoryId, setCategoryId] = useState('contas');
+  const [dueDate, setDueDate] = useState(
+    new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+  );
   const [recurrence, setRecurrence] = useState<'none' | 'monthly' | 'weekly' | 'yearly'>('monthly');
+  const [categoryId, setCategoryId] = useState(categories[0]?.id || 'cat-outros');
   const [error, setError] = useState('');
 
   if (!isOpen) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
-
     const amountCents = parseCurrencyToCents(amountStr);
+
     if (amountCents <= 0) {
-      setError('Por favor, informe um valor válido maior que zero.');
+      setError('Informe um valor maior que zero');
       return;
     }
     if (!description.trim()) {
-      setError('Por favor, digite o nome ou descrição da conta.');
+      setError('Informe uma descrição para a conta');
       return;
     }
 
     addBill({
-      type,
       amountCents,
+      type,
       description: description.trim(),
-      dueDate: dueDate || getTodayDateString(),
-      categoryId,
+      dueDate,
       recurrence,
-      status: 'pending',
+      categoryId,
+      isPaid: false,
     });
 
     setAmountStr('');
@@ -52,51 +55,51 @@ export function BillModal({ isOpen, onClose }: BillModalProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-md animate-fade-in">
-      <div className="tech-card tech-modal-card w-full max-w-md p-6 border border-white/10 shadow-2xl relative overflow-hidden">
-        {/* Glow accent */}
-        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#5b8cff] to-transparent opacity-60" />
-
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs animate-fade-in">
+      <div className="bg-white dark:bg-[#121324] border border-slate-100 dark:border-slate-800/80 rounded-3xl w-full max-w-md p-6 shadow-2xl relative overflow-hidden animate-in fade-in zoom-in-95">
         {/* Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-white/10">
+        <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-white/5">
           <div className="flex items-center gap-2">
-            <Receipt className="h-5 w-5 text-[#5b8cff]" />
-            <div>
-              <h2 className="text-base sm:text-lg font-bold text-white font-sora">
-                Nova Conta ou Compromisso
-              </h2>
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-violet-50 text-violet-600 dark:bg-violet-950/40 dark:text-violet-400">
+              <Receipt className="h-5 w-5" />
             </div>
+            <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white font-sora">
+              Nova Conta ou Compromisso
+            </h2>
           </div>
           <button
+            type="button"
             onClick={onClose}
-            className="rounded-xl p-2 text-slate-400 hover:bg-white/10 hover:text-white transition cursor-pointer"
+            className="rounded-full p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 transition cursor-pointer"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
 
         {/* Type toggle */}
-        <div className="mt-4 grid grid-cols-2 gap-2 p-1 tech-toggle-group rounded-xl border border-white/5">
+        <div className="mt-4 grid grid-cols-2 gap-2 p-1 bg-slate-100/70 dark:bg-white/5 rounded-2xl">
           <button
             type="button"
             onClick={() => setType('payable')}
-            className={`py-2 text-xs font-mono font-semibold rounded-lg transition ${
+            className={`py-2.5 text-xs font-semibold rounded-xl transition cursor-pointer flex items-center justify-center gap-1.5 ${
               type === 'payable'
-                ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40 shadow-[0_0_15px_rgba(244,63,94,0.2)]'
-                : 'text-slate-400 hover:text-white'
+                ? 'bg-white dark:bg-[#1f2038] text-rose-600 dark:text-rose-400 shadow-xs'
+                : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
+            <ArrowDownRight className="h-4 w-4" />
             Conta a Pagar
           </button>
           <button
             type="button"
             onClick={() => setType('receivable')}
-            className={`py-2 text-xs font-mono font-semibold rounded-lg transition ${
+            className={`py-2.5 text-xs font-semibold rounded-xl transition cursor-pointer flex items-center justify-center gap-1.5 ${
               type === 'receivable'
-                ? 'bg-[#22ffb4]/20 text-[#22ffb4] border border-[#22ffb4]/40 shadow-[0_0_15px_rgba(34,255,180,0.2)]'
-                : 'text-slate-400 hover:text-white'
+                ? 'bg-white dark:bg-[#1f2038] text-emerald-600 dark:text-emerald-400 shadow-xs'
+                : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
+            <ArrowUpRight className="h-4 w-4" />
             Recebimento Previsto
           </button>
         </div>
@@ -104,17 +107,17 @@ export function BillModal({ isOpen, onClose }: BillModalProps) {
         {/* Form */}
         <form onSubmit={handleSubmit} className="mt-4 space-y-3.5">
           {error && (
-            <div className="rounded-xl bg-rose-500/10 border border-rose-500/30 p-2.5 text-xs font-mono text-rose-300">
+            <div className="rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 p-2.5 text-xs font-semibold text-rose-600 dark:text-rose-400">
               {error}
             </div>
           )}
 
           <div>
-            <label className="block text-xs font-semibold font-mono text-slate-300 mb-2">
+            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">
               Valor (R$)
             </label>
             <div className="relative">
-              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-mono font-bold text-slate-500">
+              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-bold text-slate-400">
                 R$
               </span>
               <input
@@ -124,13 +127,13 @@ export function BillModal({ isOpen, onClose }: BillModalProps) {
                 onChange={(e) => setAmountStr(formatCurrencyInput(e.target.value))}
                 placeholder="0,00"
                 autoFocus
-                className="w-full h-12 rounded-xl border border-white/10 tech-input pl-11 pr-4 text-lg font-bold font-mono text-white placeholder:text-slate-500 focus:border-[#5b8cff] focus:outline-hidden transition"
+                className="w-full h-12 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-white/5 pl-11 pr-4 text-xl font-bold font-sora text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500 transition"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold font-mono text-slate-300 mb-2">
+            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">
               Descrição da conta
             </label>
             <input
@@ -138,30 +141,30 @@ export function BillModal({ isOpen, onClose }: BillModalProps) {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Ex: Aluguel, Luz, Internet, Parcela do Cartão"
-              className="w-full h-11 rounded-xl border border-white/10 tech-input px-3.5 text-xs text-white placeholder:text-slate-500 focus:border-[#5b8cff] focus:outline-hidden transition"
+              className="w-full h-11 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-white/5 px-3.5 text-xs font-medium text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500 transition"
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3.5 items-start">
+          <div className="grid grid-cols-2 gap-3 items-start">
             <div>
-              <label className="block text-xs font-semibold font-mono text-slate-300 mb-2">
+              <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">
                 Vencimento
               </label>
               <input
                 type="date"
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
-                className="w-full h-11 rounded-xl border border-white/10 tech-input px-3 text-xs font-mono text-white focus:border-[#5b8cff] focus:outline-hidden transition"
+                className="w-full h-11 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-white/5 px-3 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500 transition"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold font-mono text-slate-300 mb-2">
+              <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">
                 Recorrência
               </label>
               <select
                 value={recurrence}
                 onChange={(e) => setRecurrence(e.target.value as 'none' | 'monthly' | 'weekly' | 'yearly')}
-                className="w-full h-11 rounded-xl border border-white/10 tech-input px-3 text-xs text-white focus:border-[#5b8cff] focus:outline-hidden transition"
+                className="w-full h-11 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-white/5 px-3 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500 transition"
               >
                 <option value="none">Apenas uma vez</option>
                 <option value="monthly">Mensal</option>
@@ -172,13 +175,13 @@ export function BillModal({ isOpen, onClose }: BillModalProps) {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold font-mono text-slate-300 mb-2">
+            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">
               Categoria
             </label>
             <select
               value={categoryId}
               onChange={(e) => setCategoryId(e.target.value)}
-              className="w-full h-11 rounded-xl border border-white/10 tech-input px-3.5 text-xs text-white focus:border-[#5b8cff] focus:outline-hidden transition"
+              className="w-full h-11 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-white/5 px-3.5 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500 transition"
             >
               {categories.map((c) => (
                 <option key={c.id} value={c.id}>
@@ -188,17 +191,17 @@ export function BillModal({ isOpen, onClose }: BillModalProps) {
             </select>
           </div>
 
-          <div className="pt-3 flex items-center justify-end gap-2.5 border-t border-white/5">
+          <div className="pt-3 flex items-center justify-end gap-2.5 border-t border-slate-100 dark:border-white/5">
             <button
               type="button"
               onClick={onClose}
-              className="rounded-xl px-4 py-2 text-xs font-mono text-slate-400 hover:text-white hover:bg-white/5 transition"
+              className="rounded-2xl px-4 py-2.5 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 transition cursor-pointer"
             >
               Cancelar
             </button>
             <button
               type="submit"
-              className="rounded-xl bg-[#5b8cff] px-5 py-2 text-xs font-mono font-bold text-white transition hover:bg-[#6e9aff] hover:shadow-[0_0_20px_rgba(91,140,255,0.4)] active:scale-98 cursor-pointer"
+              className="rounded-2xl bg-[#121324] hover:bg-[#1e2038] dark:bg-violet-600 dark:hover:bg-violet-700 text-white px-5 py-2.5 text-xs font-semibold shadow-md active:scale-98 transition cursor-pointer"
             >
               Cadastrar Compromisso
             </button>

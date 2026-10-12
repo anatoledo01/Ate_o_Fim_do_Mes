@@ -52,23 +52,21 @@ export function GoalModal({ isOpen, onClose }: GoalModalProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-md animate-fade-in">
-      <div className="tech-card tech-modal-card w-full max-w-md p-6 border border-white/10 shadow-2xl relative overflow-hidden">
-        {/* Glow accent */}
-        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#ffd000] to-transparent opacity-60" />
-
-        <div className="flex items-center justify-between pb-4 border-b border-white/10">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs animate-fade-in">
+      <div className="bg-white dark:bg-[#121324] border border-slate-100 dark:border-slate-800/80 rounded-3xl w-full max-w-md p-6 shadow-2xl relative overflow-hidden animate-in fade-in zoom-in-95">
+        <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-white/5">
           <div className="flex items-center gap-2">
-            <Target className="h-5 w-5 text-[#ffd000]" />
-            <div>
-              <h2 className="text-base sm:text-lg font-bold text-white font-sora">
-                Nova Meta Financeira
-              </h2>
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-violet-50 text-violet-600 dark:bg-violet-950/40 dark:text-violet-400">
+              <Target className="h-5 w-5" />
             </div>
+            <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white font-sora">
+              Nova Meta Financeira
+            </h2>
           </div>
           <button
+            type="button"
             onClick={onClose}
-            className="rounded-xl p-2 text-slate-400 hover:bg-white/10 hover:text-white transition cursor-pointer"
+            className="rounded-full p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10 transition cursor-pointer"
           >
             <X className="h-4 w-4" />
           </button>
@@ -76,13 +74,13 @@ export function GoalModal({ isOpen, onClose }: GoalModalProps) {
 
         <form onSubmit={handleSubmit} className="mt-4 space-y-3.5">
           {error && (
-            <div className="rounded-xl bg-rose-500/10 border border-rose-500/30 p-2.5 text-xs font-mono text-rose-300">
+            <div className="rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 p-2.5 text-xs font-semibold text-rose-600 dark:text-rose-400">
               {error}
             </div>
           )}
 
           <div>
-            <label className="block text-xs font-semibold font-mono text-slate-300 mb-2">
+            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">
               Título do Objetivo
             </label>
             <input
@@ -91,13 +89,13 @@ export function GoalModal({ isOpen, onClose }: GoalModalProps) {
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Ex: Reserva de Emergência, Viagem de Férias"
               autoFocus
-              className="w-full h-11 rounded-xl border border-white/10 tech-input px-3.5 text-xs text-white placeholder:text-slate-500 focus:border-[#ffd000] focus:outline-hidden transition"
+              className="w-full h-11 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-white/5 px-3.5 text-xs font-medium text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500 transition"
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3.5 items-start">
+          <div className="grid grid-cols-2 gap-3 items-start">
             <div>
-              <label className="block text-xs font-semibold font-mono text-slate-300 mb-2">
+              <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">
                 Valor Desejado (R$)
               </label>
               <input
@@ -106,11 +104,11 @@ export function GoalModal({ isOpen, onClose }: GoalModalProps) {
                 value={targetStr}
                 onChange={(e) => setTargetStr(formatCurrencyInput(e.target.value))}
                 placeholder="0,00"
-                className="w-full h-11 rounded-xl border border-white/10 tech-input px-3 text-xs font-mono font-bold text-white placeholder:text-slate-500 focus:border-[#ffd000] focus:outline-hidden transition"
+                className="w-full h-11 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-white/5 px-3 text-xs font-bold font-sora text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500 transition"
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold font-mono text-slate-300 mb-2">
+              <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">
                 Já Acumulado (R$)
               </label>
               <input
@@ -119,34 +117,34 @@ export function GoalModal({ isOpen, onClose }: GoalModalProps) {
                 value={currentStr}
                 onChange={(e) => setCurrentStr(formatCurrencyInput(e.target.value))}
                 placeholder="0,00"
-                className="w-full h-11 rounded-xl border border-white/10 tech-input px-3 text-xs font-mono text-white placeholder:text-slate-500 focus:border-[#ffd000] focus:outline-hidden transition"
+                className="w-full h-11 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-white/5 px-3 text-xs font-medium text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500 transition"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold font-mono text-slate-300 mb-2">
+            <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">
               Prazo Estimado (Opcional)
             </label>
             <input
               type="date"
               value={targetDate}
               onChange={(e) => setTargetDate(e.target.value)}
-              className="w-full h-11 rounded-xl border border-white/10 tech-input px-3.5 text-xs font-mono text-white focus:border-[#ffd000] focus:outline-hidden transition"
+              className="w-full h-11 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-white/5 px-3.5 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500 transition"
             />
           </div>
 
-          <div className="pt-3 flex items-center justify-end gap-2.5 border-t border-white/5">
+          <div className="pt-3 flex items-center justify-end gap-2.5 border-t border-slate-100 dark:border-white/5">
             <button
               type="button"
               onClick={onClose}
-              className="rounded-xl px-4 py-2 text-xs font-mono text-slate-400 hover:text-white hover:bg-white/5 transition"
+              className="rounded-2xl px-4 py-2.5 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 transition cursor-pointer"
             >
               Cancelar
             </button>
             <button
               type="submit"
-              className="rounded-xl bg-[#ffd000] px-5 py-2 text-xs font-mono font-bold text-[#05060f] transition hover:bg-[#ffe043] hover:shadow-[0_0_20px_rgba(255,208,0,0.4)] active:scale-98 cursor-pointer"
+              className="rounded-2xl bg-[#121324] hover:bg-[#1e2038] dark:bg-violet-600 dark:hover:bg-violet-700 text-white px-5 py-2.5 text-xs font-semibold shadow-md active:scale-98 transition cursor-pointer"
             >
               Criar Objetivo
             </button>

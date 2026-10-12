@@ -37,11 +37,11 @@ export function CreditFooter({ variant = 'app', className = '' }: CreditFooterPr
   }
 
   return (
-    <footer className={`mt-auto py-4 text-center text-xs text-[#a9a8c6] ${className}`}>
-      <div className="px-4 flex items-center justify-center gap-1.5 text-slate-400">
-        <Heart className="h-3.5 w-3.5 text-slate-400" />
+    <footer className={`mt-auto py-4 text-center text-xs text-slate-500 dark:text-slate-400 ${className}`}>
+      <div className="px-4 flex items-center justify-center gap-1.5">
+        <Heart className="h-3.5 w-3.5 text-rose-500" />
         <span>Desenvolvido por </span>
-        <span className="font-semibold text-slate-200">Ana Toledo</span>
+        <span className="font-semibold text-slate-900 dark:text-white">Ana Toledo</span>
       </div>
     </footer>
   );
