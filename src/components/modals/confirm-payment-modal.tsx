@@ -26,8 +26,8 @@ export function ConfirmPaymentModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
-      <div className="bg-white dark:bg-[#121324] border border-slate-100 dark:border-slate-800/80 rounded-3xl w-full max-w-sm p-6 relative space-y-5 shadow-2xl animate-in fade-in zoom-in-95">
+    <div className="fixed inset-0 z-[100] app-modal-backdrop flex items-center justify-center p-3 sm:p-4 bg-black/70 backdrop-blur-xs animate-fade-in overflow-y-auto">
+      <div className="bg-white dark:bg-[#121324] border border-slate-100 dark:border-slate-800/80 rounded-3xl w-full max-w-sm p-5 sm:p-6 relative my-auto max-h-[calc(100dvh-1.5rem)] space-y-5 shadow-2xl animate-in fade-in zoom-in-95 overflow-y-auto">
         {/* Top Icon & Close */}
         <div className="flex items-center justify-between">
           <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-800/40">

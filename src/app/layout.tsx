@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { ThemeProvider } from '@/lib/context/theme-context';
+import { FORCED_DARK_ROUTES } from '@/lib/theme-routes';
 import { AuthProvider } from '@/lib/auth/auth-context';
 import { FinancialProvider } from '@/lib/context/financial-context';
 import { PwaRegister } from '@/components/pwa-register';
@@ -48,7 +49,9 @@ export default function RootLayout({
             __html: `(function() {
               try {
                 var t = localStorage.getItem('ate_o_fim_do_mes_theme');
-                if (window.location.pathname === '/') t = 'dark';
+                var p = window.location.pathname;
+                if (p.length > 1 && p.charAt(p.length - 1) === '/') p = p.slice(0, -1);
+                if (${JSON.stringify(FORCED_DARK_ROUTES)}.indexOf(p) !== -1) t = 'dark';
                 if (t === 'dark') {
                   document.documentElement.classList.add('dark');
                   document.documentElement.classList.remove('light');

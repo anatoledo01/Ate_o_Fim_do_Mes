@@ -159,8 +159,8 @@ export default function SobreAppPage() {
 
       {/* Modal de Termos de Uso */}
       {showTermsModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-fade-in">
-          <div className="bg-white dark:bg-[#121324] border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4 max-h-[85vh] overflow-y-auto">
+        <div className="fixed inset-0 z-[100] app-modal-backdrop flex items-center justify-center bg-black/70 backdrop-blur-xs p-3 sm:p-4 animate-fade-in overflow-y-auto">
+          <div className="bg-white dark:bg-[#121324] border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-5 sm:p-6 shadow-2xl space-y-4 my-auto max-h-[calc(100dvh-1.5rem)] overflow-y-auto">
             <h3 className="text-base font-bold text-slate-900 dark:text-white font-sora">
               Termos de Uso e Privacidade
             </h3>

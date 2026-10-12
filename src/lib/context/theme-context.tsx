@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
+import { isForcedDarkRoute } from '@/lib/theme-routes';
 
 export type Theme = 'dark' | 'light';
 
@@ -15,14 +16,11 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const THEME_STORAGE_KEY = 'ate_o_fim_do_mes_theme';
 
-/** Routes that always render in dark mode, regardless of user preference. */
-const FORCED_DARK_ROUTES = ['/'];
-
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>('light');
   const [isReady, setIsReady] = useState(false);
   const pathname = usePathname();
-  const isForcedDark = FORCED_DARK_ROUTES.includes(pathname ?? '');
+  const isForcedDark = isForcedDarkRoute(pathname);
 
   useEffect(() => {
     const saved = localStorage.getItem(THEME_STORAGE_KEY) as Theme | null;

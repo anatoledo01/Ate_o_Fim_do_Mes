@@ -518,8 +518,8 @@ export default function DashboardPage() {
 
       {/* Formula Modal (Clean popover, only on demand) */}
       {showFormulaModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fade-in">
-          <div className="tech-card tech-modal-card w-full max-w-sm p-5 relative space-y-4">
+        <div className="fixed inset-0 z-[100] app-modal-backdrop flex items-center justify-center p-3 sm:p-4 bg-black/70 backdrop-blur-md animate-fade-in overflow-y-auto">
+          <div className="tech-card tech-modal-card w-full max-w-sm p-5 relative my-auto max-h-[calc(100dvh-1.5rem)] overflow-y-auto space-y-4">
             <div className="flex items-center justify-between pb-2 border-b border-white/10">
               <span className="text-xs font-bold font-mono-tech text-[#22ffb4]">
                 CÁLCULO DO LIMITE DIÁRIO
