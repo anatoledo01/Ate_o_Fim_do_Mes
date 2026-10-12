@@ -305,21 +305,28 @@ body {
 input[type="date"],
 input[type="time"],
 input[type="datetime-local"] {
-  -webkit-appearance: none;
-  appearance: none;
   min-height: 44px;
-  line-height: 1.25;
-  display: block;
+  height: 44px;
+  display: flex !important;
+  align-items: center !important;
   width: 100%;
   box-sizing: border-box;
+  font-family: inherit;
+  font-size: 0.8125rem;
 }
 
 input[type="date"]::-webkit-date-and-time-value {
   text-align: left;
+  line-height: 44px;
+  min-height: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
   margin: 0;
   padding: 0;
-  min-height: 1.25em;
-  line-height: normal;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: inherit;
 }
 
 input[type="date"]::-webkit-calendar-picker-indicator {
@@ -647,6 +654,12 @@ html.light .tech-toggle-group {
 button.bg-\[\#121324\],
 button.bg-\[\#121324\] * {
   color: #ffffff !important;
+}
+
+/* Dark mode: active filter pills have a white background, so text must be dark */
+html.dark .tab-pill-active,
+html.dark .tab-pill-active * {
+  color: #0f172a !important;
 }
 
 .hero-navy-card .text-slate-400,

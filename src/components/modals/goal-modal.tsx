@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useFinancial } from '@/lib/context/financial-context';
 import { parseCurrencyToCents, formatCurrencyInput } from '@/lib/formatters';
+import { DateInput } from '@/components/date-input';
 import { X, Target } from 'lucide-react';
 
 interface GoalModalProps {
@@ -127,11 +128,11 @@ export function GoalModal({ isOpen, onClose }: GoalModalProps) {
               <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">
                 Prazo Estimado (Opcional)
               </label>
-              <input
-                type="date"
+              <DateInput
                 value={targetDate}
-                onChange={(e) => setTargetDate(e.target.value)}
-                className="w-full h-11 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50/50 dark:bg-white/5 px-3.5 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-500 transition"
+                onChange={setTargetDate}
+                accentColor="violet"
+                placeholder="Selecionar data (opcional)"
               />
             </div>
           </div>
