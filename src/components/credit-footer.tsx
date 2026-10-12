@@ -5,6 +5,8 @@ interface CreditFooterProps {
   className?: string;
 }
 
+import { Heart } from 'lucide-react';
+
 export function CreditFooter({ variant = 'app', className = '' }: CreditFooterProps) {
   if (variant === 'landing') {
     return (
@@ -12,7 +14,7 @@ export function CreditFooter({ variant = 'app', className = '' }: CreditFooterPr
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <div className="flex flex-col items-center justify-between gap-6 text-center sm:flex-row sm:text-left">
             <div className="flex items-center gap-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-tr from-[#22ffb4] to-[#5b8cff] text-xs font-black text-[#04110c] shadow-[0_0_16px_rgba(34,255,180,0.4)]">
+              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-violet-600 text-xs font-black text-white shadow-sm">
                 AF
               </div>
               <span className="font-bold tracking-tight text-white">
@@ -20,13 +22,13 @@ export function CreditFooter({ variant = 'app', className = '' }: CreditFooterPr
               </span>
             </div>
 
-            <div className="text-xs text-[#a9a8c6] font-mono-tech tracking-wider">
+            <div className="text-xs text-[#a9a8c6] tracking-wider">
               © {new Date().getFullYear()} Até o Fim do Mês · Inteligência Financeira Pessoal
             </div>
 
-            <div className="text-xs font-mono-tech uppercase tracking-widest text-[#a9a8c6] flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-[#22ffb4] shadow-[0_0_10px_#22ffb4]" />
-              Desenvolvido por <strong className="text-white hover:text-[#22ffb4] transition">Ana Toledo</strong>
+            <div className="text-xs text-[#a9a8c6] flex items-center gap-1.5">
+              <Heart className="h-3.5 w-3.5 text-rose-400" />
+              <span>Desenvolvido por <strong className="text-white">Ana Toledo</strong></span>
             </div>
           </div>
         </div>
@@ -35,11 +37,11 @@ export function CreditFooter({ variant = 'app', className = '' }: CreditFooterPr
   }
 
   return (
-    <footer className={`mt-auto border-t border-white/5 py-4 text-center text-xs text-[#a9a8c6] font-mono-tech ${className}`}>
-      <div className="px-4 flex items-center justify-center gap-2">
-        <span className="h-1.5 w-1.5 rounded-full bg-[#22ffb4] shadow-[0_0_8px_#22ffb4]" />
+    <footer className={`mt-auto py-4 text-center text-xs text-[#a9a8c6] ${className}`}>
+      <div className="px-4 flex items-center justify-center gap-1.5 text-slate-400">
+        <Heart className="h-3.5 w-3.5 text-slate-400" />
         <span>Desenvolvido por </span>
-        <span className="font-semibold text-white">Ana Toledo</span>
+        <span className="font-semibold text-slate-200">Ana Toledo</span>
       </div>
     </footer>
   );

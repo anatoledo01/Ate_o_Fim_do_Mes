@@ -115,33 +115,43 @@ export default function LandingPage() {
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="relative pt-16 pb-20 md:pt-24 md:pb-32 overflow-hidden">
-        <div className="mx-auto max-w-5xl px-4 text-center sm:px-6">
-          {/* LED Pill Badge */}
-          <div className="tech-pill">
-            <span className="tech-led" />
-            <span className="shimmer-text">Seu salário tem um plano. Agora você também.</span>
+      {/* Hero / Splash Section (Screen 1: Splash / Abertura from Mockup) */}
+      <section className="relative pt-12 pb-16 md:pt-20 md:pb-28 overflow-hidden text-center">
+        <div className="mx-auto max-w-3xl px-4 sm:px-6 flex flex-col items-center">
+          {/* Calendar Icon Badge with $ (Screen 1) */}
+          <div className="relative mb-6">
+            <div className="flex h-20 w-20 items-center justify-center rounded-3xl bg-violet-600/20 border border-violet-500/40 text-violet-400 shadow-[0_0_40px_rgba(139,92,246,0.35)]">
+              <div className="relative flex flex-col items-center justify-center">
+                <div className="w-10 h-9 rounded-lg border-2 border-violet-300 flex flex-col items-center pt-1.5">
+                  <div className="w-6 h-0.5 bg-violet-300 rounded-full mb-1" />
+                  <span className="font-black text-sm text-violet-200 leading-none">$</span>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <h1 className="mt-6 text-3xl font-extrabold tracking-tight sm:text-5xl md:text-6xl text-white max-w-4xl mx-auto leading-[1.12]">
-            Seu dinheiro precisa durar <br />
-            <span className="grad-line">até o próximo salário.</span>
+          <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-white font-sora">
+            Até o Fim do Mês
           </h1>
 
-          <p className="mt-6 text-base sm:text-lg text-[#c9c8e2] max-w-2xl mx-auto leading-relaxed">
-            Descubra todos os dias exatamente <strong>quanto você pode gastar hoje</strong> sem
-            comprometer as contas que ainda vão vencer ou o resto do seu mês.
+          <p className="mt-3 text-sm sm:text-base text-slate-400 max-w-sm mx-auto leading-relaxed">
+            Seu dinheiro sob controle até o próximo salário.
           </p>
 
-          <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link href="/cadastro" className="btn-tech-primary w-full sm:w-auto">
-              Começar Gratuitamente
+          <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3 w-full max-w-xs">
+            <Link
+              href="/cadastro"
+              className="w-full bg-[#8b5cf6] hover:bg-[#7c3aed] text-white font-semibold py-3.5 px-8 rounded-full shadow-[0_10px_30px_rgba(139,92,246,0.35)] flex items-center justify-center gap-2 transition active:scale-95 text-sm"
+            >
+              <span>Começar</span>
               <ArrowRight className="h-4 w-4" />
             </Link>
 
-            <Link href="/login" className="btn-tech-ghost w-full sm:w-auto">
-              Já Tenho uma Conta
+            <Link
+              href="/login"
+              className="w-full text-slate-400 hover:text-white text-xs py-2 transition"
+            >
+              Já tenho uma conta
             </Link>
           </div>
 

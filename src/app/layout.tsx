@@ -48,12 +48,12 @@ export default function RootLayout({
             __html: `(function() {
               try {
                 var t = localStorage.getItem('ate_o_fim_do_mes_theme');
-                if (t === 'light') {
-                  document.documentElement.classList.add('light');
-                  document.documentElement.classList.remove('dark');
-                } else {
+                if (t === 'dark') {
                   document.documentElement.classList.add('dark');
                   document.documentElement.classList.remove('light');
+                } else {
+                  document.documentElement.classList.add('light');
+                  document.documentElement.classList.remove('dark');
                 }
               } catch (e) {}
             })()`,

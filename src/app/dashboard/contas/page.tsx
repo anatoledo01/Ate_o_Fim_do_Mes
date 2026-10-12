@@ -32,24 +32,7 @@ export default function ContasPage() {
 
   const today = getTodayDateString();
 
-  // Metrics
-  const totalPayablePending = useMemo(() => {
-    return bills
-      .filter((b) => b.type === 'payable' && b.status === 'pending')
-      .reduce((acc, b) => acc + b.amountCents, 0);
-  }, [bills]);
 
-  const totalOverdue = useMemo(() => {
-    return bills
-      .filter((b) => b.type === 'payable' && b.status === 'pending' && b.dueDate < today)
-      .reduce((acc, b) => acc + b.amountCents, 0);
-  }, [bills, today]);
-
-  const totalReceivablePending = useMemo(() => {
-    return bills
-      .filter((b) => b.type === 'receivable' && b.status === 'pending')
-      .reduce((acc, b) => acc + b.amountCents, 0);
-  }, [bills]);
 
   // Tab filtering
   const filteredBills = useMemo(() => {
@@ -106,92 +89,67 @@ export default function ContasPage() {
   };
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-5 sm:px-6 space-y-5 pb-16">
+    <div className="mx-auto max-w-xl px-4 py-5 space-y-4 pb-24">
       {/* Top Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2.5">
-          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-tr from-[#5b8cff]/20 to-[#8b5cf6]/20 text-[#5b8cff] border border-[#5b8cff]/30 shadow-xs">
-            <Receipt className="h-5 w-5" />
-          </div>
-          <div>
-            <h1 className="text-lg sm:text-xl font-bold tracking-tight text-white font-sora">
-              Contas e Boletos
-            </h1>
-            <span className="text-xs font-mono-tech text-[#8f8ea8]">
-              {bills.length} {bills.length === 1 ? 'cadastrada' : 'cadastradas'}
-            </span>
-          </div>
+      <div className="flex items-center justify-between pt-1">
+        <div>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white font-sora">
+            Contas e Boletos
+          </h1>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+            {bills.length} {bills.length === 1 ? 'cadastrada' : 'cadastradas'}
+          </p>
         </div>
 
         <button
+          type="button"
           onClick={() => setIsModalOpen(true)}
-          className="btn-tech-primary !py-2 !px-3.5 !text-xs"
+          className="flex h-9 w-9 items-center justify-center rounded-full bg-[#121324] hover:bg-[#1f2038] dark:bg-violet-600 dark:hover:bg-violet-700 text-white transition shadow-sm cursor-pointer"
+          title="Nova Conta"
         >
           <Plus className="h-4 w-4" />
-          <span className="hidden sm:inline">Nova Conta</span>
         </button>
       </div>
 
-      {/* Metrics Row */}
-      <div className="grid grid-cols-3 gap-2 sm:gap-3">
-        <div className="tech-card p-2 sm:p-3.5 min-w-0">
-          <span className="text-[9px] sm:text-[10px] font-mono-tech uppercase text-[#8f8ea8] block truncate">A Pagar</span>
-          <div className="mt-1 text-[11px] sm:text-sm md:text-base font-bold font-mono-tech text-rose-400 whitespace-nowrap leading-tight truncate">
-            {formatCurrency(totalPayablePending)}
-          </div>
-        </div>
-
-        <div className="tech-card p-2 sm:p-3.5 min-w-0">
-          <span className="text-[9px] sm:text-[10px] font-mono-tech uppercase text-[#8f8ea8] block truncate">Vencidas</span>
-          <div className="mt-1 text-[11px] sm:text-sm md:text-base font-bold font-mono-tech text-amber-400 whitespace-nowrap leading-tight truncate">
-            {formatCurrency(totalOverdue)}
-          </div>
-        </div>
-
-        <div className="tech-card p-2 sm:p-3.5 min-w-0">
-          <span className="text-[9px] sm:text-[10px] font-mono-tech uppercase text-[#8f8ea8] block truncate">A Receber</span>
-          <div className="mt-1 text-[11px] sm:text-sm md:text-base font-bold font-mono-tech text-[#22ffb4] whitespace-nowrap leading-tight truncate">
-            {formatCurrency(totalReceivablePending)}
-          </div>
-        </div>
-      </div>
-
       {/* Filter Tabs */}
-      <div className="flex gap-1.5 p-1 bg-white/5 rounded-2xl border border-white/10 w-fit">
+      <div className="flex items-center gap-2 pt-1">
         <button
+          type="button"
           onClick={() => setActiveTab('pending')}
-          className={`py-1 px-3 text-xs font-semibold rounded-xl transition font-mono-tech ${
+          className={`px-4 py-1.5 rounded-full text-xs font-semibold transition cursor-pointer ${
             activeTab === 'pending'
-              ? 'bg-[#22ffb4] text-[#04110c] shadow-xs'
-              : 'text-[#8f8ea8] hover:text-white'
+              ? 'bg-[#121324] text-white dark:bg-white dark:text-slate-900 shadow-xs'
+              : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-white/5 dark:text-slate-400'
           }`}
         >
           Pendentes ({bills.filter((b) => b.status === 'pending').length})
         </button>
         <button
+          type="button"
           onClick={() => setActiveTab('paid')}
-          className={`py-1 px-3 text-xs font-semibold rounded-xl transition font-mono-tech ${
+          className={`px-4 py-1.5 rounded-full text-xs font-semibold transition cursor-pointer ${
             activeTab === 'paid'
-              ? 'bg-[#5b8cff] text-white shadow-xs'
-              : 'text-[#8f8ea8] hover:text-white'
+              ? 'bg-[#121324] text-white dark:bg-white dark:text-slate-900 shadow-xs'
+              : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-white/5 dark:text-slate-400'
           }`}
         >
           Pagas ({bills.filter((b) => b.status === 'paid' || b.status === 'received').length})
         </button>
         <button
+          type="button"
           onClick={() => setActiveTab('all')}
-          className={`py-1 px-3 text-xs font-semibold rounded-xl transition font-mono-tech ${
+          className={`px-4 py-1.5 rounded-full text-xs font-semibold transition cursor-pointer ${
             activeTab === 'all'
-              ? 'bg-white/10 text-white shadow-xs'
-              : 'text-[#8f8ea8] hover:text-white'
+              ? 'bg-[#121324] text-white dark:bg-white dark:text-slate-900 shadow-xs'
+              : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-white/5 dark:text-slate-400'
           }`}
         >
-          Todas ({bills.length})
+          Todas
         </button>
       </div>
 
       {/* Bills List */}
-      <div className="tech-card divide-y divide-white/5 overflow-hidden">
+      <div className="bg-white dark:bg-[#121324] border border-slate-100 dark:border-slate-800/80 rounded-3xl p-3 sm:p-4 shadow-[0_2px_12px_rgba(0,0,0,0.03)] divide-y divide-slate-100 dark:divide-white/5">
         {filteredBills.length === 0 ? (
           <div className="py-12 text-center text-xs text-[#8f8ea8] font-mono-tech">
             Nenhuma conta nesta listagem.
@@ -205,16 +163,16 @@ export default function ContasPage() {
             return (
               <div
                 key={bill.id}
-                className="p-3.5 text-xs transition hover:bg-white/[0.02]"
+                className="py-3 px-1 text-xs transition hover:bg-slate-50/50 dark:hover:bg-white/[0.02] rounded-2xl"
               >
-                <div className="flex items-start gap-3">
+                <div className="flex items-center gap-3">
                   <div
-                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border mt-0.5 ${
+                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border ${
                       isPaid
-                        ? 'border-[#22ffb4]/30 bg-[#22ffb4]/10 text-[#22ffb4]'
+                        ? 'border-emerald-100 bg-emerald-50 text-emerald-600 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-400'
                         : isOverdue
-                        ? 'border-amber-500/30 bg-amber-500/10 text-amber-400'
-                        : 'border-white/10 bg-white/5 text-[#8f8ea8]'
+                        ? 'border-amber-100 bg-amber-50 text-amber-600 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-400'
+                        : 'border-slate-100 bg-slate-50 text-slate-700 dark:border-white/5 dark:bg-white/5 dark:text-slate-300'
                     }`}
                   >
                     {isPaid ? (
@@ -224,21 +182,21 @@ export default function ContasPage() {
                     )}
                   </div>
 
-                  <div className="min-w-0 flex-1 space-y-1">
+                  <div className="min-w-0 flex-1 space-y-0.5">
                     {/* Row 1: Title (left) & Amount (right) */}
                     <div className="flex items-center justify-between gap-2">
-                      <div className="font-semibold text-white truncate text-xs sm:text-sm flex items-center gap-1.5 min-w-0">
+                      <div className="font-semibold text-slate-900 dark:text-white truncate text-xs sm:text-sm flex items-center gap-1.5 min-w-0">
                         <span className="truncate">{bill.description}</span>
                         {isOverdue && (
-                          <span className="shrink-0 rounded-md border border-amber-500/30 bg-amber-500/10 px-1.5 py-0.2 text-[9px] font-mono-tech font-bold text-amber-300">
+                          <span className="shrink-0 rounded-full bg-rose-50 text-rose-600 border border-rose-200 px-2 py-0.2 text-[9px] font-bold">
                             Vencida
                           </span>
                         )}
                       </div>
 
                       <span
-                        className={`font-mono-tech font-bold text-xs sm:text-sm whitespace-nowrap shrink-0 ${
-                          bill.type === 'payable' ? 'text-rose-400' : 'text-[#22ffb4]'
+                        className={`font-bold text-xs sm:text-sm whitespace-nowrap shrink-0 ${
+                          bill.type === 'payable' ? 'text-rose-500 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'
                         }`}
                       >
                         {formatCurrency(bill.amountCents)}
@@ -247,7 +205,7 @@ export default function ContasPage() {
 
                     {/* Row 2: Due date and category (left) & Actions (right) */}
                     <div className="flex items-center justify-between gap-2 pt-0.5">
-                      <div className="flex items-center gap-1.5 text-[11px] font-mono-tech text-[#8f8ea8] truncate min-w-0">
+                      <div className="flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400 truncate min-w-0">
                         <span className="whitespace-nowrap">Venc. {formatDateBR(bill.dueDate)}</span>
                         <span>•</span>
                         <span className="truncate">{cat?.name || 'Geral'}</span>

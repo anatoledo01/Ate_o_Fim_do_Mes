@@ -5,8 +5,6 @@ import Link from 'next/link';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useFinancial } from '@/lib/context/financial-context';
 import { formatCurrency, formatDateBR } from '@/lib/formatters';
-import { calculateCategoryBreakdown } from '@/lib/financial-engine';
-import { CategoryDonutChart } from '@/components/category-donut-chart';
 import { TransactionModal } from '@/components/modals/transaction-modal';
 import { BillModal } from '@/components/modals/bill-modal';
 import { ConfirmPaymentModal } from '@/components/modals/confirm-payment-modal';
@@ -16,14 +14,12 @@ import confetti from 'canvas-confetti';
 import {
   Calendar,
   AlertTriangle,
-  ArrowDownRight,
   ArrowUpRight,
   Plus,
   Receipt,
   HelpCircle,
   CheckCircle2,
   ChevronRight,
-  ChevronDown,
   Eye,
   EyeOff,
   ShoppingBag,
@@ -37,6 +33,9 @@ import {
   Sun,
   Moon,
   X,
+  Settings,
+  Briefcase,
+  ShoppingCart,
 } from 'lucide-react';
 
 export default function DashboardPage() {
@@ -47,7 +46,6 @@ export default function DashboardPage() {
     settings,
     transactions,
     bills,
-    categories,
     markBillAsPaid,
   } = useFinancial();
 
@@ -57,15 +55,10 @@ export default function DashboardPage() {
   const [showFormulaModal, setShowFormulaModal] = useState(false);
   const [hideValues, setHideValues] = useState(false);
   const [billsTab, setBillsTab] = useState<'pending' | 'paid'>('pending');
-  const [balanceViewMode, setBalanceViewMode] = useState<'limit' | 'balance'>('limit');
 
   const [payingBillId, setPayingBillId] = useState<string | null>(null);
   const [confirmingBill, setConfirmingBill] = useState<FinancialBill | null>(null);
   const [successToast, setSuccessToast] = useState<string | null>(null);
-
-  // Month header text
-  const currentMonthName = new Date().toLocaleDateString('pt-BR', { month: 'long' });
-  const formattedMonth = currentMonthName.charAt(0).toUpperCase() + currentMonthName.slice(1);
 
   const openNewExpense = () => {
     setTxModalType('expense');
@@ -76,8 +69,6 @@ export default function DashboardPage() {
     setTxModalType('income');
     setIsTxModalOpen(true);
   };
-
-  const categoryBreakdown = calculateCategoryBreakdown(transactions, categories);
 
   // Bills filtered by tab (Pendentes / Pagas)
   const displayBills = bills
@@ -141,260 +132,258 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-5 sm:px-6 space-y-6 relative pb-12">
+    <div className="mx-auto max-w-xl px-4 py-5 space-y-4 relative pb-20">
       {/* Toast Feedback */}
       {successToast && (
-        <div className="fixed top-5 right-5 z-50 flex items-center gap-2.5 rounded-2xl border border-[#22ffb4]/40 bg-[#07081a]/95 px-4 py-3 text-xs font-bold text-[#22ffb4] shadow-[0_10px_35px_rgba(0,0,0,0.85)] backdrop-blur-2xl animate-in fade-in slide-in-from-top-3">
-          <CheckCircle2 className="h-4 w-4 shrink-0 text-[#22ffb4]" />
+        <div className="fixed top-5 right-5 z-50 flex items-center gap-2.5 rounded-2xl border border-emerald-500/40 bg-slate-900/95 px-4 py-3 text-xs font-bold text-emerald-400 shadow-xl backdrop-blur-2xl animate-in fade-in slide-in-from-top-3">
+          <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-400" />
           <span>{successToast}</span>
         </div>
       )}
 
-      {/* 1. Mobile-First Top Header (Avatar + Olá, Nome + Month + Theme + Eye) */}
-      <div className="flex items-center justify-between pt-1 gap-2">
-        {/* User avatar + Olá, Nome */}
-        <Link href="/dashboard/configuracoes" className="flex items-center gap-2.5 group min-w-0">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-tr from-[#22ffb4]/20 via-[#5b8cff]/20 to-[#8b5cf6]/30 border border-[#22ffb4]/50 shadow-[0_0_12px_rgba(34,255,180,0.25)] text-xs font-bold text-white transition group-hover:scale-105 overflow-hidden">
-            {user?.avatarUrl ? (
-              <img
-                src={user.avatarUrl}
-                alt={user.displayName || 'Avatar'}
-                className="h-full w-full object-cover"
-              />
-            ) : user?.displayName ? (
-              user.displayName.slice(0, 2).toUpperCase()
-            ) : (
-              'AT'
-            )}
-          </div>
-          <div className="min-w-0">
-            <span className="block text-[11px] font-mono-tech text-[#8f8ea8] leading-none">
-              Olá,
-            </span>
-            <span className="block text-sm sm:text-base font-bold text-white leading-tight font-sora truncate max-w-[120px] sm:max-w-none">
-              {user?.displayName || 'você'}
-            </span>
-          </div>
-        </Link>
+      {/* 1. Header (Screen 5: Olá, Nome 👋 + subtitle + Settings Gear + Theme Toggle) */}
+      <div className="flex items-start justify-between pt-1 gap-2">
+        <div className="min-w-0 flex-1">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white font-sora">
+            Olá, {user?.displayName || 'Ana'} 👋
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+            Veja quanto você pode gastar até o próximo salário.
+          </p>
+        </div>
 
-        {/* Right side: Month Selector Pill + Theme Toggle + Eye Privacy Toggle */}
-        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-          {/* Month Selector Pill */}
-          <div className="flex items-center gap-1 rounded-full bg-white/5 border border-white/10 px-2.5 sm:px-3 py-1.5 text-xs font-semibold text-white shadow-xs">
-            <span>{formattedMonth}</span>
-            <ChevronDown className="h-3.5 w-3.5 text-[#8f8ea8]" />
-          </div>
-
-          {/* Theme Toggle Button */}
+        <div className="flex items-center gap-1.5 shrink-0 pt-0.5">
+          {/* Theme Toggle */}
           <button
             type="button"
             onClick={toggleTheme}
             title={theme === 'dark' ? 'Mudar para modo claro' : 'Mudar para modo escuro'}
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 border border-white/10 text-[#c9c8e2] hover:text-white hover:bg-white/10 transition cursor-pointer"
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/20 text-slate-600 dark:text-slate-300 transition cursor-pointer"
           >
             {theme === 'dark' ? (
               <Sun className="h-4 w-4 text-amber-300" />
             ) : (
-              <Moon className="h-4 w-4 text-indigo-400" />
+              <Moon className="h-4 w-4 text-slate-600" />
             )}
           </button>
 
-          {/* Eye Privacy Toggle */}
+          {/* Settings Gear Link */}
+          <Link
+            href="/dashboard/configuracoes"
+            title="Configurações"
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/20 text-slate-600 dark:text-slate-300 transition"
+          >
+            <Settings className="h-4 w-4" />
+          </Link>
+        </div>
+      </div>
+
+      {/* 2. Card 1: Saldo disponível agora (Screen 5: Dark Navy card with Eye toggle & Payday row) */}
+      <div className="hero-navy-card rounded-3xl p-5 sm:p-6 shadow-xl relative overflow-hidden">
+        {/* Top row: Label + Eye toggle */}
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-medium text-slate-400 tracking-wide">
+            Saldo disponível agora
+          </span>
           <button
             type="button"
             onClick={() => setHideValues(!hideValues)}
             title={hideValues ? 'Mostrar valores' : 'Ocultar valores'}
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 border border-white/10 text-[#c9c8e2] hover:text-white hover:bg-white/10 transition cursor-pointer"
+            className="text-slate-400 hover:text-white transition p-1 cursor-pointer"
           >
             {hideValues ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
           </button>
         </div>
+
+        {/* Big Balance Amount */}
+        <div className="mt-2 mb-4">
+          <div className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+            {displayVal(overview.currentBalanceCents)}
+          </div>
+        </div>
+
+        {/* Payday Sub-row */}
+        <div className="pt-3 border-t border-white/10 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 text-xs text-slate-300 min-w-0">
+            <Calendar className="h-3.5 w-3.5 text-violet-400 shrink-0" />
+            <span className="truncate">
+              Próximo salário em {overview.daysRemaining} {overview.daysRemaining === 1 ? 'dia' : 'dias'}
+            </span>
+          </div>
+          <span className="text-xs sm:text-sm font-bold text-white shrink-0">
+            {displayVal(settings?.primaryIncomeCents || 450000)}
+          </span>
+        </div>
       </div>
 
-      {/* 2. Hero Balance Card (Mobills/Nubank style - Centered, Numbers-First) */}
-      <div className="tech-card beam-card p-6 sm:p-7 relative overflow-hidden text-center">
-        {/* Top switch & info pill */}
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-1 bg-white/5 p-1 rounded-xl border border-white/10 text-[11px] font-mono-tech">
-            <button
-              type="button"
-              onClick={() => setBalanceViewMode('limit')}
-              className={`px-2.5 py-1 rounded-lg transition ${
-                balanceViewMode === 'limit'
-                  ? 'bg-[#22ffb4] text-[#04110c] font-bold shadow-xs'
-                  : 'text-[#8f8ea8] hover:text-white'
-              }`}
-            >
-              Limite Diário
-            </button>
-            <button
-              type="button"
-              onClick={() => setBalanceViewMode('balance')}
-              className={`px-2.5 py-1 rounded-lg transition ${
-                balanceViewMode === 'balance'
-                  ? 'bg-[#5b8cff] text-white font-bold shadow-xs'
-                  : 'text-[#8f8ea8] hover:text-white'
-              }`}
-            >
-              Saldo em Conta
-            </button>
-          </div>
-
+      {/* 3. Card 2: Você pode gastar (Screen 5: Soft Lavender Card with Progress Bar) */}
+      <div className="bg-[#f4f0fd] dark:bg-[#1a162b] border border-[#e9e1fa] dark:border-[#2f2750] rounded-3xl p-5 sm:p-6 shadow-xs relative">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-semibold text-[#5a5378] dark:text-[#b4a9db]">
+            Você pode gastar:
+          </span>
           <button
             type="button"
             onClick={() => setShowFormulaModal(true)}
-            className="flex items-center gap-1 text-[11px] font-mono-tech text-[#8f8ea8] hover:text-[#22ffb4] transition"
-            title="Como é calculado?"
+            className="text-[11px] font-semibold text-violet-700 dark:text-violet-400 hover:underline flex items-center gap-1 cursor-pointer"
           >
             <HelpCircle className="h-3.5 w-3.5" />
+            <span>Como funciona?</span>
           </button>
         </div>
 
-        {/* Subtitle */}
-        <div className="text-xs uppercase font-mono-tech tracking-wider text-[#a9a8c6] mt-3">
-          {balanceViewMode === 'limit' ? 'Limite Diário Sugerido' : 'Saldo Total em Conta'}
+        {/* Amount */}
+        <div className="mt-1 text-2xl sm:text-3xl font-extrabold text-[#1a1336] dark:text-white tracking-tight">
+          {displayVal(overview.suggestedDailyLimitCents)}
+          <span className="text-xs font-normal text-[#7d759b] dark:text-[#a59bc8] ml-1.5">/dia</span>
         </div>
 
-        {/* Big Value Display */}
-        <div className="my-2 flex items-center justify-center gap-2">
+        {/* Progress Bar */}
+        <div className="mt-3.5 w-full bg-[#ded6f8] dark:bg-[#2d254b] h-2 rounded-full overflow-hidden">
           <div
-            className={`text-4xl sm:text-5xl font-black tracking-tight font-sans ${
-              overview.isDeficit && balanceViewMode === 'limit'
-                ? 'text-rose-400'
-                : balanceViewMode === 'limit'
-                ? 'text-[#22ffb4]'
-                : 'text-white'
-            }`}
-          >
-            {balanceViewMode === 'limit'
-              ? displayVal(overview.suggestedDailyLimitCents)
-              : displayVal(overview.currentBalanceCents)}
-          </div>
-        </div>
-
-        {/* Days remaining badge or deficit alert */}
-        <div className="flex items-center justify-center gap-2 text-xs font-mono-tech text-[#8f8ea8]">
-          <Calendar className="h-3.5 w-3.5 text-[#5b8cff]" />
-          <span>
-            {overview.daysRemaining} {overview.daysRemaining === 1 ? 'dia' : 'dias'} até o próximo salário
-            {settings?.nextPayday ? ` (${formatDateBR(settings.nextPayday)})` : ''}
-          </span>
-        </div>
-
-        {overview.isDeficit && (
-          <div className="mt-3 inline-flex items-center gap-2 rounded-xl bg-rose-500/10 border border-rose-500/30 px-3 py-1.5 text-xs text-rose-300">
-            <AlertTriangle className="h-3.5 w-3.5 text-rose-400 shrink-0" />
-            <span>Déficit projetado: ajuste despesas ou faturas</span>
-          </div>
-        )}
-
-        {/* Green & Red Pills Side by Side */}
-        <div className="mt-6 grid grid-cols-2 gap-3 max-w-md mx-auto">
-          {/* Receitas Pill */}
-          <button
-            type="button"
-            onClick={openNewIncome}
-            className="flex items-center justify-center gap-2 rounded-2xl tech-summary-income border p-3 transition group active:scale-95 cursor-pointer"
-          >
-            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full tech-summary-income-icon">
-              <ArrowUpRight className="h-4 w-4" />
-            </div>
-            <div className="text-left min-w-0">
-              <span className="block text-[10px] font-mono-tech uppercase tech-summary-income-label">Receitas</span>
-              <span className="block text-xs sm:text-sm font-bold tech-summary-income-value font-mono-tech whitespace-nowrap leading-tight">
-                {displayVal(overview.plannedIncomesCents || overview.incomesInPeriodCents)}
-              </span>
-            </div>
-          </button>
-
-          {/* Despesas Pill */}
-          <button
-            type="button"
-            onClick={openNewExpense}
-            className="flex items-center justify-center gap-2 rounded-2xl tech-summary-expense border p-3 transition group active:scale-95 cursor-pointer"
-          >
-            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full tech-summary-expense-icon">
-              <ArrowDownRight className="h-4 w-4" />
-            </div>
-            <div className="text-left min-w-0">
-              <span className="block text-[10px] font-mono-tech uppercase tech-summary-expense-label">Despesas</span>
-              <span className="block text-xs sm:text-sm font-bold tech-summary-expense-value font-mono-tech whitespace-nowrap leading-tight">
-                {displayVal(overview.expensesInPeriodCents)}
-              </span>
-            </div>
-          </button>
-        </div>
-
-        {/* Quick Actions Row */}
-        <div className="mt-5 pt-4 border-t border-white/10 flex items-center justify-center gap-3">
-          <button
-            onClick={openNewExpense}
-            className="btn-tech-primary !py-2 !px-4 !text-xs"
-          >
-            <Plus className="h-3.5 w-3.5" />
-            <span>Nova Despesa</span>
-          </button>
-          <button
-            onClick={openNewIncome}
-            className="btn-tech-ghost !py-2 !px-4 !text-xs"
-          >
-            <ArrowUpRight className="h-3.5 w-3.5 text-[#22ffb4]" />
-            <span>Receita</span>
-          </button>
-          <button
-            onClick={() => setIsBillModalOpen(true)}
-            className="btn-tech-ghost !py-2 !px-4 !text-xs"
-          >
-            <Receipt className="h-3.5 w-3.5 text-[#5b8cff]" />
-            <span>Nova Conta</span>
-          </button>
-        </div>
-      </div>
-
-      {/* 3. Despesas por Categoria (Donut Chart + Legend, Matching Mockup) */}
-      <div className="tech-card p-5 sm:p-6">
-        <div className="flex items-center justify-between pb-3 border-b border-white/10">
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-bold text-white">Despesas por Categoria</span>
-          </div>
-          <span className="text-xs font-mono-tech text-[#8f8ea8]">
-            {displayVal(overview.expensesInPeriodCents)}
-          </span>
-        </div>
-
-        <div className="mt-4">
-          <CategoryDonutChart
-            categories={categoryBreakdown}
-            totalCents={overview.expensesInPeriodCents}
-            hideValues={hideValues}
-            onAddExpense={openNewExpense}
+            className="bg-[#7c3aed] h-full rounded-full transition-all duration-500"
+            style={{
+              width: `${Math.min(
+                100,
+                Math.max(
+                  8,
+                  overview.currentBalanceCents > 0
+                    ? ((overview.currentBalanceCents - overview.pendingBillsCents) /
+                        overview.currentBalanceCents) *
+                        100
+                    : 15
+                )
+              )}%`,
+            }}
           />
         </div>
+
+        {/* Bottom context label */}
+        <div className="mt-2 text-xs text-[#7d759b] dark:text-[#a59bc8] font-medium flex items-center justify-between">
+          <span>de {displayVal(overview.currentBalanceCents)}</span>
+          {overview.isDeficit && (
+            <span className="text-rose-600 dark:text-rose-400 font-bold flex items-center gap-1">
+              <AlertTriangle className="h-3 w-3" /> Déficit projetado
+            </span>
+          )}
+        </div>
       </div>
 
-      {/* 4. Próximos Vencimentos / Contas a Pagar (Fintech Card with Tabs) */}
-      <div className="tech-card p-5 sm:p-6">
-        <div className="flex items-center justify-between pb-3 border-b border-white/10">
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-bold text-white">Próximos Vencimentos</span>
+      {/* 4. Action Pills Row (Nova Despesa, Receita, Nova Conta) */}
+      <div className="grid grid-cols-3 gap-2 sm:gap-3 pt-1">
+        <button
+          type="button"
+          onClick={openNewExpense}
+          className="btn-pill-dark bg-[#121324] hover:bg-[#1e2038] text-white font-semibold text-xs py-2.5 px-2 sm:px-3 rounded-full flex items-center justify-center gap-1.5 shadow-sm active:scale-95 transition cursor-pointer"
+        >
+          <Plus className="h-3.5 w-3.5" />
+          <span className="truncate">Nova Despesa</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={openNewIncome}
+          className="btn-pill-white bg-white hover:bg-slate-50 dark:bg-slate-900 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-800 font-semibold text-xs py-2.5 px-2 sm:px-3 rounded-full flex items-center justify-center gap-1.5 shadow-xs active:scale-95 transition cursor-pointer"
+        >
+          <ArrowUpRight className="h-3.5 w-3.5 text-emerald-600" />
+          <span className="truncate">Receita</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setIsBillModalOpen(true)}
+          className="btn-pill-white bg-white hover:bg-slate-50 dark:bg-slate-900 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-800 font-semibold text-xs py-2.5 px-2 sm:px-3 rounded-full flex items-center justify-center gap-1.5 shadow-xs active:scale-95 transition cursor-pointer"
+        >
+          <Receipt className="h-3.5 w-3.5 text-violet-600" />
+          <span className="truncate">Nova Conta</span>
+        </button>
+      </div>
+
+      {/* 5. Card 3: Resumo do mês (Screen 5: Entradas, Contas fixas, Gastos variáveis) */}
+      <div className="bg-white dark:bg-[#121324] border border-slate-100 dark:border-slate-800/80 rounded-3xl p-5 shadow-[0_2px_12px_rgba(0,0,0,0.03)]">
+        <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-white/5">
+          <span className="text-sm font-bold text-slate-900 dark:text-white">
+            Resumo do mês
+          </span>
+          <Link
+            href="/dashboard/transacoes"
+            className="text-xs font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white flex items-center gap-1 transition"
+          >
+            Ver todos <ChevronRight className="h-3.5 w-3.5" />
+          </Link>
+        </div>
+
+        <div className="mt-3.5 space-y-3">
+          {/* Entradas */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100/60 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20">
+                <Briefcase className="h-4 w-4" />
+              </div>
+              <span className="text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-200">
+                Entradas
+              </span>
+            </div>
+            <span className="text-xs sm:text-sm font-bold text-emerald-600 dark:text-emerald-400">
+              + {displayVal(overview.plannedIncomesCents || overview.incomesInPeriodCents)}
+            </span>
           </div>
+
+          {/* Contas fixas */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-rose-50 text-rose-500 border border-rose-100/60 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20">
+                <ShoppingCart className="h-4 w-4" />
+              </div>
+              <span className="text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-200">
+                Contas fixas
+              </span>
+            </div>
+            <span className="text-xs sm:text-sm font-bold text-rose-500 dark:text-rose-400">
+              - {displayVal(overview.pendingBillsCents)}
+            </span>
+          </div>
+
+          {/* Gastos variáveis */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-50 text-amber-500 border border-amber-100/60 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20">
+                <ShoppingBag className="h-4 w-4" />
+              </div>
+              <span className="text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-200">
+                Gastos variáveis
+              </span>
+            </div>
+            <span className="text-xs sm:text-sm font-bold text-amber-600 dark:text-amber-400">
+              {displayVal(overview.expensesInPeriodCents)}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* 6. Próximos Vencimentos (With Pagar button & Confirmation Modal) */}
+      <div className="bg-white dark:bg-[#121324] border border-slate-100 dark:border-slate-800/80 rounded-3xl p-5 shadow-[0_2px_12px_rgba(0,0,0,0.03)]">
+        <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-white/5">
+          <span className="text-sm font-bold text-slate-900 dark:text-white">
+            Próximos Vencimentos
+          </span>
           <Link
             href="/dashboard/contas"
-            className="text-xs font-mono-tech text-[#5b8cff] hover:text-[#22ffb4] flex items-center gap-1 transition"
+            className="text-xs font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white flex items-center gap-1 transition"
           >
             Ver todas <ChevronRight className="h-3.5 w-3.5" />
           </Link>
         </div>
 
         {/* Filter Tabs: Pendentes | Pagas */}
-        <div className="mt-4 flex items-center gap-2">
+        <div className="mt-3 flex items-center gap-1.5">
           <button
             type="button"
             onClick={() => setBillsTab('pending')}
-            className={`rounded-full px-3.5 py-1 text-xs font-semibold transition ${
+            className={`rounded-full px-3 py-1 text-xs font-semibold transition cursor-pointer ${
               billsTab === 'pending'
-                ? 'bg-[#22ffb4] text-[#04110c]'
-                : 'bg-white/5 text-[#8f8ea8] hover:text-white'
+                ? 'bg-[#121324] text-white dark:bg-white dark:text-slate-900'
+                : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-white/5 dark:text-slate-400'
             }`}
           >
             Pendentes
@@ -402,10 +391,10 @@ export default function DashboardPage() {
           <button
             type="button"
             onClick={() => setBillsTab('paid')}
-            className={`rounded-full px-3.5 py-1 text-xs font-semibold transition ${
+            className={`rounded-full px-3 py-1 text-xs font-semibold transition cursor-pointer ${
               billsTab === 'paid'
-                ? 'bg-[#5b8cff] text-white'
-                : 'bg-white/5 text-[#8f8ea8] hover:text-white'
+                ? 'bg-[#121324] text-white dark:bg-white dark:text-slate-900'
+                : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-white/5 dark:text-slate-400'
             }`}
           >
             Pagas
@@ -413,11 +402,11 @@ export default function DashboardPage() {
         </div>
 
         {/* Bills list */}
-        <div className="mt-4 space-y-2.5">
+        <div className="mt-3.5 space-y-2">
           {displayBills.length === 0 ? (
-            <div className="text-center py-6">
-              <CheckCircle2 className="mx-auto h-7 w-7 text-[#22ffb4] mb-1.5 opacity-80" />
-              <p className="text-xs text-[#8f8ea8]">
+            <div className="text-center py-5">
+              <CheckCircle2 className="mx-auto h-6 w-6 text-emerald-500 mb-1 opacity-80" />
+              <p className="text-xs text-slate-500 dark:text-slate-400">
                 {billsTab === 'pending' ? 'Nenhuma conta pendente.' : 'Nenhuma conta quitada ainda.'}
               </p>
             </div>
@@ -425,48 +414,40 @@ export default function DashboardPage() {
             displayBills.map((bill) => (
               <div
                 key={bill.id}
-                className="rounded-2xl border border-white/5 bg-white/5 p-3 text-xs transition hover:border-[#22ffb4]/30"
+                className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 transition hover:border-slate-200 dark:hover:border-white/10"
               >
-                <div className="flex items-start gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#5b8cff]/10 text-[#5b8cff] border border-[#5b8cff]/20 mt-0.5">
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-violet-50 text-violet-600 dark:bg-violet-500/10 dark:text-violet-400">
                     {getCategoryIcon(bill.categoryId)}
                   </div>
-
-                  <div className="min-w-0 flex-1 space-y-1">
-                    {/* Row 1: Title & Amount */}
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="font-semibold text-white truncate text-xs sm:text-sm">
-                        {bill.description}
-                      </div>
-                      <span className="font-mono-tech font-bold text-rose-400 whitespace-nowrap shrink-0 text-xs sm:text-sm">
-                        {displayVal(bill.amountCents)}
-                      </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-xs sm:text-sm font-semibold text-slate-900 dark:text-white truncate">
+                      {bill.description}
                     </div>
-
-                    {/* Row 2: Due Date & Action */}
-                    <div className="flex items-center justify-between gap-2 pt-0.5">
-                      <div className="text-[11px] font-mono-tech text-[#8f8ea8] truncate">
-                        Vence em {formatDateBR(bill.dueDate)}
-                      </div>
-
-                      <div className="shrink-0">
-                        {bill.status === 'pending' ? (
-                          <button
-                            type="button"
-                            onClick={() => setConfirmingBill(bill)}
-                            disabled={payingBillId === bill.id}
-                            className="rounded-full btn-pay-action px-3.5 py-1 text-[11px] font-bold shadow-xs transition active:scale-95 disabled:opacity-60 cursor-pointer"
-                          >
-                            Pagar
-                          </button>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-[#22ffb4]/10 text-[#22ffb4] border border-[#22ffb4]/30 px-2.5 py-0.5 text-[10px] font-mono-tech font-bold">
-                            <CheckCircle2 className="h-3 w-3" /> Pago
-                          </span>
-                        )}
-                      </div>
+                    <div className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
+                      Vence em {formatDateBR(bill.dueDate)}
                     </div>
                   </div>
+                </div>
+
+                <div className="flex items-center gap-2.5 shrink-0 pl-2">
+                  <span className="text-xs sm:text-sm font-bold text-rose-500 dark:text-rose-400">
+                    {displayVal(bill.amountCents)}
+                  </span>
+                  {bill.status === 'pending' ? (
+                    <button
+                      type="button"
+                      onClick={() => setConfirmingBill(bill)}
+                      disabled={payingBillId === bill.id}
+                      className="rounded-full bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1 text-[11px] font-bold shadow-xs transition active:scale-95 disabled:opacity-60 cursor-pointer"
+                    >
+                      Pagar
+                    </button>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 text-[10px] font-bold">
+                      <CheckCircle2 className="h-3 w-3" /> Pago
+                    </span>
+                  )}
                 </div>
               </div>
             ))
@@ -474,32 +455,34 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* 5. Últimas Transações (Clean Grouped Style from Mockup Phone 2) */}
-      <div className="tech-card p-5 sm:p-6">
-        <div className="flex items-center justify-between pb-3 border-b border-white/10">
-          <span className="text-sm font-bold text-white">Últimas Transações</span>
+      {/* 7. Últimas Transações (Clean Grouped Style from Mockup Screen 6) */}
+      <div className="bg-white dark:bg-[#121324] border border-slate-100 dark:border-slate-800/80 rounded-3xl p-5 shadow-[0_2px_12px_rgba(0,0,0,0.03)]">
+        <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-white/5">
+          <span className="text-sm font-bold text-slate-900 dark:text-white">
+            Últimas Transações
+          </span>
           <Link
             href="/dashboard/transacoes"
-            className="text-xs font-mono-tech text-[#5b8cff] hover:text-[#22ffb4] flex items-center gap-1 transition"
+            className="text-xs font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white flex items-center gap-1 transition"
           >
             Ver extrato ({transactions.length}) <ChevronRight className="h-3.5 w-3.5" />
           </Link>
         </div>
 
-        <div className="mt-3 divide-y divide-white/5">
+        <div className="mt-3 divide-y divide-slate-100 dark:divide-white/5">
           {recentTransactions.length === 0 ? (
-            <div className="text-center py-6 text-xs text-[#8f8ea8]">
+            <div className="text-center py-5 text-xs text-slate-500 dark:text-slate-400">
               Nenhuma transação lançada ainda.
             </div>
           ) : (
             recentTransactions.map((tx) => (
               <div key={tx.id} className="flex items-center justify-between py-2.5 text-xs gap-3">
-                <div className="flex items-center gap-2.5 min-w-0 flex-1 overflow-hidden">
+                <div className="flex items-center gap-2.5 min-w-0 flex-1">
                   <div
-                    className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${
+                    className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${
                       tx.type === 'income'
-                        ? 'bg-[#22ffb4]/15 text-[#22ffb4] border border-[#22ffb4]/30'
-                        : 'bg-rose-500/15 text-rose-400 border border-rose-500/30'
+                        ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400'
+                        : 'bg-slate-100 text-slate-600 dark:bg-white/5 dark:text-slate-300'
                     }`}
                   >
                     {tx.type === 'income' ? (
@@ -508,17 +491,21 @@ export default function DashboardPage() {
                       getCategoryIcon(tx.categoryId)
                     )}
                   </div>
-                  <div className="min-w-0 flex-1 overflow-hidden">
-                    <div className="font-semibold text-white truncate text-xs sm:text-sm">{tx.description}</div>
-                    <div className="text-[10px] font-mono-tech text-[#8f8ea8] truncate">
+                  <div className="min-w-0 flex-1">
+                    <div className="font-semibold text-slate-900 dark:text-white truncate text-xs sm:text-sm">
+                      {tx.description}
+                    </div>
+                    <div className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
                       {formatDateBR(tx.date)}
                     </div>
                   </div>
                 </div>
 
                 <div
-                  className={`font-mono-tech font-bold shrink-0 text-right whitespace-nowrap text-xs sm:text-sm ${
-                    tx.type === 'income' ? 'text-[#22ffb4]' : 'text-white'
+                  className={`font-bold shrink-0 text-right whitespace-nowrap text-xs sm:text-sm ${
+                    tx.type === 'income'
+                      ? 'text-emerald-600 dark:text-emerald-400'
+                      : 'text-rose-500 dark:text-rose-400'
                   }`}
                 >
                   {tx.type === 'income' ? '+' : '-'} {displayVal(tx.amountCents)}

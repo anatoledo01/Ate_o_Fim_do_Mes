@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, ArrowLeftRight, Receipt, Target, User } from 'lucide-react';
+import { Home, ArrowLeftRight, Receipt, Target, MoreHorizontal } from 'lucide-react';
 
 interface NavItem {
   href: string;
@@ -16,99 +16,51 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/dashboard/transacoes', label: 'Transações', icon: ArrowLeftRight },
   { href: '/dashboard/contas', label: 'Contas', icon: Receipt },
   { href: '/dashboard/metas', label: 'Metas', icon: Target },
-  { href: '/dashboard/configuracoes', label: 'Perfil', icon: User },
+  { href: '/dashboard/configuracoes', label: 'Mais', icon: MoreHorizontal },
 ];
 
 export function CurvedNavBar() {
   const pathname = usePathname();
 
-  // Find active index based on route
-  const activeIndex = NAV_ITEMS.findIndex((item) => {
-    if (item.href === '/dashboard') {
-      return pathname === '/dashboard';
-    }
-    return pathname.startsWith(item.href);
-  });
-
-  const currentIndex = activeIndex >= 0 ? activeIndex : 0;
-
-  // cx coordinate in SVG viewBox (0 to 1000)
-  // Each tab occupies 200 units (1000 / 5)
-  // Center of tab i is (i * 200) + 100
-  const cx = currentIndex * 200 + 100;
-
-  // Smooth SVG curve path with a concave dip at cx
-  const pathD = `
-    M 28 22
-    L ${cx - 46} 22
-    C ${cx - 30} 22, ${cx - 25} 62, ${cx} 62
-    C ${cx + 25} 62, ${cx + 30} 22, ${cx + 46} 22
-    L 972 22
-    Q 996 22 996 44
-    L 996 76
-    Q 996 100 972 100
-    L 28 100
-    Q 4 100 4 76
-    L 4 44
-    Q 4 22 28 22
-    Z
-  `;
-
   return (
-    <div className="fixed bottom-3 left-0 right-0 z-40 flex justify-center px-4 pointer-events-none">
-      <div className="relative w-full max-w-md h-[72px] pointer-events-auto">
-        {/* 1. Curved SVG Background Pill */}
-        <div className="absolute inset-0 nav-curved-container">
-          <svg
-            viewBox="0 0 1000 100"
-            preserveAspectRatio="none"
-            className="w-full h-full nav-curved-svg stroke-1"
-          >
-            <path
-              d={pathD}
-              className="transition-[d] duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
-            />
-          </svg>
-        </div>
+    <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-[#121324]/95 backdrop-blur-md border-t border-slate-200/80 dark:border-slate-800 transition-colors">
+      <nav className="max-w-md mx-auto grid grid-cols-5 h-16 items-center px-1">
+        {NAV_ITEMS.map((item) => {
+          const Icon = item.icon;
+          const isActive =
+            item.href === '/dashboard'
+              ? pathname === '/dashboard'
+              : pathname.startsWith(item.href);
 
-        {/* 2. Elevated Floating Circle Indicator - Sleek & Proportional */}
-        <div
-          className="absolute -top-2 -translate-x-1/2 transition-all duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] pointer-events-none"
-          style={{ left: `${(currentIndex + 0.5) * 20}%` }}
-        >
-          <div className="flex h-10 w-10 items-center justify-center rounded-full nav-floating-indicator">
-            {React.createElement(NAV_ITEMS[currentIndex].icon, {
-              className: 'h-4.5 w-4.5 nav-floating-icon stroke-[2.2]',
-            })}
-          </div>
-        </div>
-
-        {/* 3. Interactive Tab Buttons Grid - Pure Icons, No Text Labels */}
-        <nav className="relative h-full grid grid-cols-5 z-10 items-center">
-          {NAV_ITEMS.map((item, idx) => {
-            const Icon = item.icon;
-            const isActive = idx === currentIndex;
-
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                aria-label={item.label}
-                title={item.label}
-                className="flex items-center justify-center h-full group focus:outline-hidden"
-              >
-                {!isActive ? (
-                  <div className="flex items-center justify-center transition-transform duration-200 group-hover:scale-115 group-active:scale-90">
-                    <Icon className="h-5 w-5 nav-inactive-icon stroke-[2] transition-colors" />
-                  </div>
-                ) : (
-                  <div className="w-5 h-5 opacity-0 pointer-events-none" />
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              aria-label={item.label}
+              className={`flex flex-col items-center justify-center h-full py-1 group transition-colors select-none ${
+                isActive
+                  ? 'text-[#121324] dark:text-white font-bold'
+                  : 'text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 font-medium'
+              }`}
+            >
+              <div className="relative flex items-center justify-center mb-0.5">
+                <Icon
+                  className={`h-5 w-5 transition-transform duration-150 ${
+                    isActive ? 'scale-110 stroke-[2.4]' : 'stroke-[1.8] group-hover:scale-105'
+                  }`}
+                />
+                {isActive && (
+                  <span className="absolute -bottom-1 h-1 w-1 rounded-full bg-[#121324] dark:bg-white" />
                 )}
-              </Link>
-            );
-          })}
-        </nav>
-      </div>
+              </div>
+              <span className="text-[10px] leading-none mt-0.5 tracking-tight">
+                {item.label}
+              </span>
+            </Link>
+          );
+        })}
+      </nav>
     </div>
   );
 }
+

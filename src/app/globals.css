@@ -630,8 +630,27 @@ html.light .tech-toggle-group {
 }
 
 /* Text & Accent Adaptations in Light Mode */
-html.light .text-white {
+html.light .text-white:not(.keep-white):not(.hero-navy-card *):not(.btn-pill-dark *) {
   color: #0f1021 !important;
+}
+html.light .keep-white,
+html.light .hero-navy-card,
+html.light .hero-navy-card h1,
+html.light .hero-navy-card h2,
+html.light .hero-navy-card h3,
+html.light .hero-navy-card .text-white,
+html.light .hero-navy-card .font-bold,
+html.light .btn-pill-dark,
+html.light .btn-pill-dark span {
+  color: #ffffff !important;
+}
+html.light .hero-navy-card .text-muted,
+html.light .hero-navy-card .text-slate-400 {
+  color: #94a3b8 !important;
+}
+html.light .hero-navy-card {
+  background-color: #121324 !important;
+  border-color: #1e2238 !important;
 }
 html.light .text-\[\#f2f1fa\] {
   color: #0f1021 !important;
