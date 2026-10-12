@@ -562,4 +562,41 @@ export const StorageRepository = {
     }
     return { account };
   },
+
+  updateAccountCredentials(
+    userId: string,
+    updates: { password?: string; displayName?: string; email?: string }
+  ): { success: boolean; error?: string } {
+    if (typeof window === 'undefined') return { success: false, error: 'Ambiente inválido' };
+    const accounts = this.getRegisteredAccounts();
+    let foundKey: string | null = null;
+    for (const [key, acc] of Object.entries(accounts)) {
+      if (acc.userId === userId) {
+        foundKey = key;
+        break;
+      }
+    }
+    if (!foundKey) return { success: false, error: 'Conta não encontrada' };
+    const current = accounts[foundKey];
+    if (updates.password) {
+      if (updates.password.length < 6) {
+        return { success: false, error: 'A senha deve conter no mínimo 6 caracteres.' };
+      }
+      current.passwordHash = btoa(updates.password);
+    }
+    if (updates.displayName) {
+      current.displayName = updates.displayName;
+    }
+    if (updates.email && updates.email.toLowerCase().trim() !== foundKey) {
+      const newEmail = updates.email.toLowerCase().trim();
+      if (accounts[newEmail]) {
+        return { success: false, error: 'Este e-mail já está em uso por outra conta.' };
+      }
+      delete accounts[foundKey];
+      current.email = newEmail;
+      accounts[newEmail] = current;
+    }
+    localStorage.setItem('ate_o_fim_do_mes_auth_accounts', JSON.stringify(accounts));
+    return { success: true };
+  },
 };

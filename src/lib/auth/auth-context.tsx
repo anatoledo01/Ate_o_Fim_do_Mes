@@ -20,6 +20,7 @@ interface AuthContextType {
   loginAsDemo: () => void;
   logout: () => Promise<void>;
   updateUserProfile: (updates: Partial<UserProfile>) => void;
+  updatePassword: (oldPassword: string, newPassword: string) => Promise<{ error?: string }>;
   completeOnboarding: (settings: Partial<FinancialSettings>) => void;
   deleteRegisteredAccount: (email: string) => void;
 }
@@ -380,6 +381,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(updatedProfile));
   };
 
+  const updatePassword = async (oldPassword: string, newPassword: string): Promise<{ error?: string }> => {
+    if (!user) return { error: 'Usuário não autenticado.' };
+    if (!newPassword || newPassword.length < 6) {
+      return { error: 'A nova senha deve ter no mínimo 6 caracteres.' };
+    }
+    if (isSupabaseConfigured && supabase && user.id !== 'demo-user') {
+      try {
+        const { error } = await supabase.auth.updateUser({ password: newPassword });
+        if (error) return { error: error.message };
+      } catch (err: unknown) {
+        console.warn('Supabase password update error:', err);
+      }
+    }
+    const verify = StorageRepository.verifyCredentials(user.email, oldPassword);
+    if (verify.error && user.id !== 'demo-user') {
+      return { error: 'Senha atual incorreta.' };
+    }
+    const res = StorageRepository.updateAccountCredentials(user.id, { password: newPassword });
+    if (!res.success && res.error) {
+      return { error: res.error };
+    }
+    return {};
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -391,6 +416,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         loginAsDemo,
         logout,
         updateUserProfile,
+        updatePassword,
         completeOnboarding,
         deleteRegisteredAccount: (email: string) => {
           StorageRepository.deleteRegisteredAccount(email);
