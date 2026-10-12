@@ -59,7 +59,7 @@ export default function CadastroPage() {
     }
 
     setLoading(true);
-    const res = await signup(email, password, name.trim(), true);
+    const res = await signup(email, password, name.trim(), false);
     setLoading(false);
 
     if (res.error) {
@@ -84,34 +84,10 @@ export default function CadastroPage() {
   const isDuplicateEmail = Boolean(
     error &&
     (error.toLowerCase().includes('já está cadastrado') ||
-     error.toLowerCase().includes('already registered'))
+     error.toLowerCase().includes('already registered') ||
+     error.toLowerCase().includes('não é possível cadastrar') ||
+     error.toLowerCase().includes('já existe'))
   );
-
-  const handleOverwrite = async () => {
-    setError('');
-    setLoading(true);
-    const passToUse = password && password.length >= 6 ? password : '123456';
-    const nameToUse = name.trim() || email.split('@')[0];
-    const res = await signup(email, passToUse, nameToUse, true);
-    setLoading(false);
-
-    if (res.error) {
-      setError(res.error);
-    } else {
-      fetch('/api/email/welcome', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email.trim(), name: nameToUse }),
-      }).catch((err) => console.error('Falha ao disparar boas-vindas Brevo:', err));
-
-      router.push('/onboarding');
-      if (typeof window !== 'undefined') {
-        setTimeout(() => {
-          window.location.href = '/onboarding';
-        }, 100);
-      }
-    }
-  };
 
   return (
     <div className="min-h-screen flex flex-col justify-between bg-[#07081a] text-[#f2f1fa] relative overflow-hidden">
@@ -144,21 +120,14 @@ export default function CadastroPage() {
                 <span>{error}</span>
               </div>
               {isDuplicateEmail && (
-                <div className="pt-2.5 border-t border-rose-500/20 flex flex-col sm:flex-row gap-2">
+                <div className="pt-2.5 border-t border-rose-500/20 space-y-2">
                   <Link
                     href={`/login?email=${encodeURIComponent(email)}`}
-                    className="flex-1 text-center py-2.5 px-3 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold transition text-xs"
+                    className="w-full text-center py-2.5 px-4 rounded-xl bg-[#22ffb4] hover:bg-[#5fffc8] text-[#04110c] font-bold transition text-xs shadow-md flex items-center justify-center gap-1.5"
                   >
-                    Fazer Login
+                    <span>Fazer Login nesta Conta</span>
+                    <ArrowRight className="h-4 w-4" />
                   </Link>
-                  <button
-                    type="button"
-                    onClick={handleOverwrite}
-                    disabled={loading}
-                    className="flex-1 py-2.5 px-3 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold transition text-xs shadow-md disabled:opacity-70"
-                  >
-                    {loading ? 'Redefinindo...' : 'Excluir cadastro e recriar conta'}
-                  </button>
                 </div>
               )}
             </div>

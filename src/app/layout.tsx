@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
+import { ThemeProvider } from '@/lib/context/theme-context';
 import { AuthProvider } from '@/lib/auth/auth-context';
 import { FinancialProvider } from '@/lib/context/financial-context';
 import { PwaRegister } from '@/components/pwa-register';
@@ -34,7 +35,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR">
+    <html lang="pt-BR" suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -42,14 +43,32 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap"
           rel="stylesheet"
         />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function() {
+              try {
+                var t = localStorage.getItem('ate_o_fim_do_mes_theme');
+                if (t === 'light') {
+                  document.documentElement.classList.add('light');
+                  document.documentElement.classList.remove('dark');
+                } else {
+                  document.documentElement.classList.add('dark');
+                  document.documentElement.classList.remove('light');
+                }
+              } catch (e) {}
+            })()`,
+          }}
+        />
       </head>
-      <body className="antialiased min-h-screen flex flex-col bg-[#07081a] text-[#f2f1fa] selection:bg-[#22ffb4]/30 selection:text-[#22ffb4]">
-        <AuthProvider>
-          <FinancialProvider>
-            <PwaRegister />
-            {children}
-          </FinancialProvider>
-        </AuthProvider>
+      <body className="antialiased min-h-screen flex flex-col selection:bg-[#22ffb4]/30 selection:text-[#22ffb4] transition-colors duration-200">
+        <ThemeProvider>
+          <AuthProvider>
+            <FinancialProvider>
+              <PwaRegister />
+              {children}
+            </FinancialProvider>
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

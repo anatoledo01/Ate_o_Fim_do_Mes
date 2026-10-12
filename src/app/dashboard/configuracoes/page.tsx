@@ -1,10 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useFinancial } from '@/lib/context/financial-context';
+import { useTheme } from '@/lib/context/theme-context';
 import { parseCurrencyToCents, formatCurrencyInput } from '@/lib/formatters';
+import { compressImageFile } from '@/lib/utils/image';
 import { IncomeFrequency } from '@/lib/types';
 import {
   Settings,
@@ -16,11 +18,16 @@ import {
   CheckCircle2,
   Tag,
   Bell,
+  Camera,
+  Upload,
+  Sun,
+  Moon,
 } from 'lucide-react';
 
 export default function ConfiguracoesPage() {
   const router = useRouter();
   const { user, updateUserProfile, logout } = useAuth();
+  const { theme, setTheme } = useTheme();
   const {
     settings,
     updateSettings,
@@ -29,9 +36,39 @@ export default function ConfiguracoesPage() {
     deleteAccount,
   } = useFinancial();
 
+  // Avatar upload state
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [avatarToast, setAvatarToast] = useState<string | null>(null);
+
   // Profile state
   const [displayName, setDisplayName] = useState(user?.displayName || '');
   const [profileSaved, setProfileSaved] = useState(false);
+
+  const handleAvatarFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setIsUploadingAvatar(true);
+      const compressedDataUrl = await compressImageFile(file, 320, 0.85);
+      updateUserProfile({ avatarUrl: compressedDataUrl });
+      setAvatarToast('Foto de perfil atualizada!');
+      setTimeout(() => setAvatarToast(null), 3500);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Erro ao processar imagem.';
+      alert(msg);
+    } finally {
+      setIsUploadingAvatar(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const handleRemoveAvatar = () => {
+    updateUserProfile({ avatarUrl: '' });
+    setAvatarToast('Foto removida!');
+    setTimeout(() => setAvatarToast(null), 3000);
+  };
 
   // Financial settings state
   const [incomeStr, setIncomeStr] = useState(
@@ -102,24 +139,98 @@ export default function ConfiguracoesPage() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6 space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white font-sora flex items-center gap-2">
-          <Settings className="h-6 w-6 text-[#22ffb4]" />
-          Configurações
-        </h1>
-        <p className="text-xs text-slate-400 mt-1">
-          Gerencie seu perfil, parâmetros de cálculo financeiro, exportação de dados e privacidade.
-        </p>
+      <div className="flex items-center gap-2.5">
+        <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-tr from-[#22ffb4]/20 to-[#5b8cff]/20 text-[#22ffb4] border border-[#22ffb4]/30 shadow-xs">
+          <Settings className="h-5 w-5" />
+        </div>
+        <div>
+          <h1 className="text-lg sm:text-xl font-bold tracking-tight text-white font-sora">
+            Configurações
+          </h1>
+          <span className="text-xs font-mono-tech text-[#8f8ea8]">
+            Perfil e Parâmetros
+          </span>
+        </div>
       </div>
 
       {/* 1. Perfil do Usuário */}
-      <div className="tech-card p-5">
-        <h3 className="text-sm font-bold text-white font-sora flex items-center gap-2">
+      <div className="tech-card p-4 sm:p-5 space-y-4">
+        <h3 className="text-xs sm:text-sm font-bold text-white font-sora flex items-center gap-2">
           <User className="h-4 w-4 text-[#5b8cff]" />
-          Dados do Perfil
+          Perfil
         </h3>
 
-        <form onSubmit={handleSaveProfile} className="mt-4 space-y-3">
+        {/* Avatar Upload Block */}
+        <div className="flex flex-col sm:flex-row items-center gap-4 pb-4 border-b border-white/10">
+          <div className="relative group shrink-0">
+            <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-gradient-to-tr from-[#22ffb4]/20 via-[#5b8cff]/20 to-[#8b5cf6]/30 border-2 border-[#22ffb4]/50 shadow-[0_0_20px_rgba(34,255,180,0.25)] text-lg font-bold text-white overflow-hidden">
+              {user?.avatarUrl ? (
+                <img
+                  src={user.avatarUrl}
+                  alt={user.displayName || 'Avatar'}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                user?.displayName ? user.displayName.slice(0, 2).toUpperCase() : 'AT'
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploadingAvatar}
+              title="Alterar foto de perfil"
+              className="absolute inset-0 flex items-center justify-center bg-black/60 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer text-white"
+            >
+              <Camera className="h-6 w-6" />
+            </button>
+          </div>
+
+          <div className="flex flex-col items-center sm:items-start gap-2">
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploadingAvatar}
+                className="inline-flex items-center gap-2 rounded-xl bg-[#22ffb4] hover:bg-[#5fffc8] text-[#04110c] px-3.5 py-1.5 text-xs font-bold shadow-xs transition active:scale-95 disabled:opacity-60 cursor-pointer"
+              >
+                {isUploadingAvatar ? (
+                  <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-[#04110c] border-t-transparent" />
+                ) : (
+                  <Upload className="h-3.5 w-3.5" />
+                )}
+                <span>{isUploadingAvatar ? 'Processando...' : 'Carregar Foto'}</span>
+              </button>
+
+              {user?.avatarUrl && (
+                <button
+                  type="button"
+                  onClick={handleRemoveAvatar}
+                  className="inline-flex items-center gap-1.5 rounded-xl border border-rose-500/30 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 px-3 py-1.5 text-xs font-mono transition active:scale-95 cursor-pointer"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                  <span>Remover</span>
+                </button>
+              )}
+            </div>
+            <span className="text-[11px] font-mono-tech text-[#8f8ea8]">
+              Formatos JPG, PNG ou WebP. Compactada automaticamente para navegação instantânea.
+            </span>
+            {avatarToast && (
+              <span className="text-xs font-semibold font-mono text-[#22ffb4] flex items-center gap-1 animate-fade-in">
+                <CheckCircle2 className="h-3.5 w-3.5" /> {avatarToast}
+              </span>
+            )}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleAvatarFileSelect}
+              className="hidden"
+            />
+          </div>
+        </div>
+
+        <form onSubmit={handleSaveProfile} className="space-y-3">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-semibold font-mono text-slate-400 mb-1.5">
@@ -130,7 +241,7 @@ export default function ConfiguracoesPage() {
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
                 required
-                className="w-full rounded-xl border border-white/10 bg-[#07081a] py-2.5 px-3.5 text-xs text-white placeholder:text-slate-500 focus:border-[#5b8cff] focus:outline-hidden transition"
+                className="w-full rounded-xl border border-white/10 tech-input py-2.5 px-3.5 text-xs text-white placeholder:text-slate-500 focus:border-[#5b8cff] focus:outline-hidden transition"
               />
             </div>
             <div>
@@ -149,7 +260,7 @@ export default function ConfiguracoesPage() {
           <div className="flex items-center gap-3 pt-1">
             <button
               type="submit"
-              className="rounded-xl border border-[#5b8cff]/40 bg-[#5b8cff]/15 px-4 py-2 text-xs font-semibold text-[#5b8cff] hover:bg-[#5b8cff]/25 active:scale-95 transition font-mono"
+              className="rounded-xl border border-[#5b8cff]/40 bg-[#5b8cff]/15 px-4 py-2 text-xs font-semibold text-[#5b8cff] hover:bg-[#5b8cff]/25 active:scale-95 transition font-mono cursor-pointer"
             >
               Salvar Perfil
             </button>
@@ -162,15 +273,85 @@ export default function ConfiguracoesPage() {
         </form>
       </div>
 
-      {/* 2. Parâmetros Financeiros */}
-      <div className="tech-card p-5">
-        <h3 className="text-sm font-bold text-white font-sora flex items-center gap-2">
-          <DollarSign className="h-4 w-4 text-[#22ffb4]" />
-          Parâmetros Financeiros e Ciclo
+      {/* 2. Aparência e Tema (Modo Claro / Escuro) */}
+      <div className="tech-card p-4 sm:p-5">
+        <h3 className="text-xs sm:text-sm font-bold text-white font-sora flex items-center gap-2">
+          {theme === 'dark' ? (
+            <Moon className="h-4 w-4 text-indigo-400" />
+          ) : (
+            <Sun className="h-4 w-4 text-amber-400" />
+          )}
+          Aparência e Tema
         </h3>
-        <p className="text-xs text-slate-400 mt-1">
-          Esses valores alimentam o motor de cálculo do seu limite diário em tempo real.
+        <p className="mt-1 text-xs font-mono-tech text-[#8f8ea8]">
+          Escolha entre o modo escuro (neon / fintech cyberpunk) ou modo claro (clean / moderno).
         </p>
+
+        <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {/* Card Modo Escuro */}
+          <button
+            type="button"
+            onClick={() => setTheme('dark')}
+            className={`flex items-center gap-3.5 p-3.5 rounded-2xl border transition text-left cursor-pointer ${
+              theme === 'dark'
+                ? 'border-[#22ffb4] bg-[#22ffb4]/10 shadow-[0_0_15px_rgba(34,255,180,0.15)] ring-1 ring-[#22ffb4]'
+                : 'border-white/10 bg-white/5 hover:border-white/20'
+            }`}
+          >
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#07081a] border border-white/15 text-[#22ffb4]">
+              <Moon className="h-5 w-5" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center justify-between">
+                <span className="font-semibold text-white text-xs sm:text-sm">Modo Escuro</span>
+                {theme === 'dark' && (
+                  <span className="rounded-full bg-[#22ffb4] text-[#04110c] text-[10px] font-bold px-2 py-0.5 font-mono-tech">
+                    Ativo
+                  </span>
+                )}
+              </div>
+              <span className="text-[11px] font-mono-tech text-[#8f8ea8] block mt-0.5">
+                Tons escuros, neon e alto contraste
+              </span>
+            </div>
+          </button>
+
+          {/* Card Modo Claro */}
+          <button
+            type="button"
+            onClick={() => setTheme('light')}
+            className={`flex items-center gap-3.5 p-3.5 rounded-2xl border transition text-left cursor-pointer ${
+              theme === 'light'
+                ? 'border-[#5b8cff] bg-[#5b8cff]/10 shadow-[0_0_15px_rgba(91,140,255,0.2)] ring-1 ring-[#5b8cff]'
+                : 'border-white/10 bg-white/5 hover:border-white/20'
+            }`}
+          >
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white border border-slate-200 text-amber-500 shadow-sm">
+              <Sun className="h-5 w-5" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center justify-between">
+                <span className="font-semibold text-white text-xs sm:text-sm">Modo Claro</span>
+                {theme === 'light' && (
+                  <span className="rounded-full bg-[#5b8cff] text-white text-[10px] font-bold px-2 py-0.5 font-mono-tech">
+                    Ativo
+                  </span>
+                )}
+              </div>
+              <span className="text-[11px] font-mono-tech text-[#8f8ea8] block mt-0.5">
+                Interface clara, limpa e nítida
+              </span>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      {/* 2. Parâmetros Financeiros */}
+      <div className="tech-card p-4 sm:p-5">
+        <h3 className="text-xs sm:text-sm font-bold text-white font-sora flex items-center gap-2">
+          <DollarSign className="h-4 w-4 text-[#22ffb4]" />
+          Parâmetros Financeiros
+        </h3>
 
         <form onSubmit={handleSaveFinancial} className="mt-4 space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -184,7 +365,7 @@ export default function ConfiguracoesPage() {
                 value={incomeStr}
                 onChange={(e) => setIncomeStr(formatCurrencyInput(e.target.value))}
                 placeholder="Ex: 5.000,00"
-                className="w-full h-11 rounded-xl border border-white/10 bg-[#07081a] px-3.5 text-xs font-mono text-white placeholder:text-slate-500 focus:border-[#22ffb4] focus:outline-hidden transition"
+                className="w-full h-11 rounded-xl border border-white/10 tech-input px-3.5 text-xs font-mono text-white placeholder:text-slate-500 focus:border-[#22ffb4] focus:outline-hidden transition"
               />
             </div>
 
@@ -195,7 +376,7 @@ export default function ConfiguracoesPage() {
               <select
                 value={frequency}
                 onChange={(e) => setFrequency(e.target.value as IncomeFrequency)}
-                className="w-full h-11 rounded-xl border border-white/10 bg-[#07081a] px-3.5 text-xs text-white focus:border-[#22ffb4] focus:outline-hidden transition [&>option]:bg-[#0c0d24] [&>option]:text-white"
+                className="w-full h-11 rounded-xl border border-white/10 tech-input px-3.5 text-xs text-white focus:border-[#22ffb4] focus:outline-hidden transition"
               >
                 <option value="mensal">Mensal</option>
                 <option value="quinzenal">Quinzenal</option>
@@ -212,7 +393,7 @@ export default function ConfiguracoesPage() {
                 type="date"
                 value={nextPayday}
                 onChange={(e) => setNextPayday(e.target.value)}
-                className="w-full h-11 rounded-xl border border-white/10 bg-[#07081a] px-3.5 text-xs font-mono text-white focus:border-[#22ffb4] focus:outline-hidden transition"
+                className="w-full h-11 rounded-xl border border-white/10 tech-input px-3.5 text-xs font-mono text-white focus:border-[#22ffb4] focus:outline-hidden transition"
               />
             </div>
 
@@ -226,7 +407,7 @@ export default function ConfiguracoesPage() {
                 value={balanceStr}
                 onChange={(e) => setBalanceStr(formatCurrencyInput(e.target.value))}
                 placeholder="Ex: 1.200,00"
-                className="w-full h-11 rounded-xl border border-white/10 bg-[#07081a] px-3.5 text-xs font-mono text-white placeholder:text-slate-500 focus:border-[#22ffb4] focus:outline-hidden transition"
+                className="w-full h-11 rounded-xl border border-white/10 tech-input px-3.5 text-xs font-mono text-white placeholder:text-slate-500 focus:border-[#22ffb4] focus:outline-hidden transition"
               />
             </div>
 
@@ -240,7 +421,7 @@ export default function ConfiguracoesPage() {
                 value={reserveStr}
                 onChange={(e) => setReserveStr(formatCurrencyInput(e.target.value))}
                 placeholder="Ex: 500,00"
-                className="w-full h-11 rounded-xl border border-white/10 bg-[#07081a] px-3.5 text-xs font-mono text-white placeholder:text-slate-500 focus:border-[#22ffb4] focus:outline-hidden transition"
+                className="w-full h-11 rounded-xl border border-white/10 tech-input px-3.5 text-xs font-mono text-white placeholder:text-slate-500 focus:border-[#22ffb4] focus:outline-hidden transition"
               />
             </div>
           </div>
@@ -262,20 +443,17 @@ export default function ConfiguracoesPage() {
       </div>
 
       {/* 3. Categorias Cadastradas */}
-      <div className="tech-card p-5">
-        <h3 className="text-sm font-bold text-white font-sora flex items-center gap-2">
+      <div className="tech-card p-4 sm:p-5">
+        <h3 className="text-xs sm:text-sm font-bold text-white font-sora flex items-center gap-2">
           <Tag className="h-4 w-4 text-[#c058ff]" />
-          Categorias Disponíveis ({categories.length})
+          Categorias ({categories.length})
         </h3>
-        <p className="text-xs text-slate-400 mt-1">
-          Categorias padronizadas para classificar receitas, despesas e faturas.
-        </p>
 
         <div className="mt-4 flex flex-wrap gap-2">
           {categories.map((c) => (
             <div
               key={c.id}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-2.5 py-1 text-xs font-mono text-slate-300 hover:border-white/20 transition"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-2.5 py-1 text-xs font-mono-tech text-[#c9c8e2] hover:border-white/20 transition"
             >
               <div
                 className="h-2 w-2 rounded-full"
@@ -288,10 +466,10 @@ export default function ConfiguracoesPage() {
       </div>
 
       {/* 4. Notificações */}
-      <div className="tech-card p-5">
-        <h3 className="text-sm font-bold text-white font-sora flex items-center gap-2">
+      <div className="tech-card p-4 sm:p-5">
+        <h3 className="text-xs sm:text-sm font-bold text-white font-sora flex items-center gap-2">
           <Bell className="h-4 w-4 text-[#f59e0b]" />
-          Preferências de Notificação
+          Notificações
         </h3>
 
         <div className="mt-4 space-y-4">
@@ -302,8 +480,8 @@ export default function ConfiguracoesPage() {
               onChange={(e) => setDailyReminder(e.target.checked)}
               className="h-4 w-4 rounded-sm accent-[#22ffb4]"
             />
-            <span className="text-xs font-mono text-slate-400 group-hover:text-slate-300 transition">
-              Lembrete diário matinal com meu limite de gastos do dia
+            <span className="text-xs font-mono-tech text-[#8f8ea8] group-hover:text-white transition">
+              Lembrete matinal do limite diário
             </span>
           </label>
 
@@ -314,22 +492,19 @@ export default function ConfiguracoesPage() {
               onChange={(e) => setBillAlerts(e.target.checked)}
               className="h-4 w-4 rounded-sm accent-[#22ffb4]"
             />
-            <span className="text-xs font-mono text-slate-400 group-hover:text-slate-300 transition">
-              Alerta de contas que vencem nos próximos 2 dias
+            <span className="text-xs font-mono-tech text-[#8f8ea8] group-hover:text-white transition">
+              Aviso de contas a vencer em 48h
             </span>
           </label>
         </div>
       </div>
 
       {/* 5. Privacidade, Exportação LGPD & Exclusão */}
-      <div className="tech-card p-5">
-        <h3 className="text-sm font-bold text-white font-sora flex items-center gap-2">
+      <div className="tech-card p-4 sm:p-5">
+        <h3 className="text-xs sm:text-sm font-bold text-white font-sora flex items-center gap-2">
           <Shield className="h-4 w-4 text-[#5b8cff]" />
-          Privacidade e Gestão de Dados (LGPD)
+          Privacidade e Dados
         </h3>
-        <p className="text-xs text-slate-400 mt-1">
-          Você tem total controle e propriedade sobre os seus dados financeiros pessoais.
-        </p>
 
         <div className="mt-4 flex flex-col sm:flex-row items-center gap-3">
           <button

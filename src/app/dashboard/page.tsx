@@ -6,8 +6,12 @@ import { useAuth } from '@/lib/auth/auth-context';
 import { useFinancial } from '@/lib/context/financial-context';
 import { formatCurrency, formatDateBR } from '@/lib/formatters';
 import { calculateCategoryBreakdown } from '@/lib/financial-engine';
+import { CategoryDonutChart } from '@/components/category-donut-chart';
 import { TransactionModal } from '@/components/modals/transaction-modal';
 import { BillModal } from '@/components/modals/bill-modal';
+import { ConfirmPaymentModal } from '@/components/modals/confirm-payment-modal';
+import { useTheme } from '@/lib/context/theme-context';
+import { FinancialBill } from '@/lib/types';
 import confetti from 'canvas-confetti';
 import {
   Calendar,
@@ -19,12 +23,25 @@ import {
   HelpCircle,
   CheckCircle2,
   ChevronRight,
-  Sparkles,
-  PieChart,
+  ChevronDown,
+  Eye,
+  EyeOff,
+  ShoppingBag,
+  Home,
+  Utensils,
+  Car,
+  Tv,
+  HeartPulse,
+  GraduationCap,
+  CreditCard,
+  Sun,
+  Moon,
+  X,
 } from 'lucide-react';
 
 export default function DashboardPage() {
   const { user } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const {
     overview,
     settings,
@@ -37,7 +54,18 @@ export default function DashboardPage() {
   const [isTxModalOpen, setIsTxModalOpen] = useState(false);
   const [txModalType, setTxModalType] = useState<'expense' | 'income'>('expense');
   const [isBillModalOpen, setIsBillModalOpen] = useState(false);
-  const [showFormulaDetails, setShowFormulaDetails] = useState(false);
+  const [showFormulaModal, setShowFormulaModal] = useState(false);
+  const [hideValues, setHideValues] = useState(false);
+  const [billsTab, setBillsTab] = useState<'pending' | 'paid'>('pending');
+  const [balanceViewMode, setBalanceViewMode] = useState<'limit' | 'balance'>('limit');
+
+  const [payingBillId, setPayingBillId] = useState<string | null>(null);
+  const [confirmingBill, setConfirmingBill] = useState<FinancialBill | null>(null);
+  const [successToast, setSuccessToast] = useState<string | null>(null);
+
+  // Month header text
+  const currentMonthName = new Date().toLocaleDateString('pt-BR', { month: 'long' });
+  const formattedMonth = currentMonthName.charAt(0).toUpperCase() + currentMonthName.slice(1);
 
   const openNewExpense = () => {
     setTxModalType('expense');
@@ -51,40 +79,69 @@ export default function DashboardPage() {
 
   const categoryBreakdown = calculateCategoryBreakdown(transactions, categories);
 
-  // Filter pending bills due before or on payday
-  const upcomingBills = bills
-    .filter((b) => b.type === 'payable' && b.status === 'pending')
-    .slice(0, 4);
+  // Bills filtered by tab (Pendentes / Pagas)
+  const displayBills = bills
+    .filter((b) => (billsTab === 'pending' ? b.status === 'pending' : b.status === 'paid' || b.status === 'received'))
+    .slice(0, 5);
 
-  const recentTransactions = transactions.slice(0, 5);
+  const recentTransactions = transactions.slice(0, 6);
 
-  const [payingBillId, setPayingBillId] = useState<string | null>(null);
-  const [successToast, setSuccessToast] = useState<string | null>(null);
-
-  const handlePayBill = (billId: string, desc?: string) => {
+  const executePayment = () => {
+    if (!confirmingBill) return;
+    const billId = confirmingBill.id;
+    const desc = confirmingBill.description;
     setPayingBillId(billId);
     try {
       markBillAsPaid(billId);
+      setConfirmingBill(null);
       setSuccessToast(`Conta "${desc || 'selecionada'}" liquidada com sucesso!`);
       try {
         confetti({
-          particleCount: 50,
+          particleCount: 45,
           spread: 60,
           origin: { y: 0.7 },
         });
       } catch {}
-      setTimeout(() => {
-        setSuccessToast(null);
-      }, 4000);
+      setTimeout(() => setSuccessToast(null), 3500);
     } catch (e) {
       console.error('Erro ao baixar conta:', e);
     } finally {
-      setTimeout(() => setPayingBillId(null), 350);
+      setTimeout(() => setPayingBillId(null), 300);
+    }
+  };
+
+  // Helper for masked values
+  const displayVal = (cents: number, prefix: string = '') => {
+    if (hideValues) return '••••••';
+    return `${prefix}${formatCurrency(cents)}`;
+  };
+
+  // Helper to map category to icon
+  const getCategoryIcon = (catId?: string) => {
+    switch (catId) {
+      case 'alimentacao':
+        return <Utensils className="h-4 w-4" />;
+      case 'moradia':
+        return <Home className="h-4 w-4" />;
+      case 'transporte':
+        return <Car className="h-4 w-4" />;
+      case 'assinaturas':
+        return <Tv className="h-4 w-4" />;
+      case 'saude':
+        return <HeartPulse className="h-4 w-4" />;
+      case 'educacao':
+        return <GraduationCap className="h-4 w-4" />;
+      case 'compras':
+        return <ShoppingBag className="h-4 w-4" />;
+      case 'contas':
+        return <Receipt className="h-4 w-4" />;
+      default:
+        return <CreditCard className="h-4 w-4" />;
     }
   };
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 space-y-8 relative">
+    <div className="mx-auto max-w-4xl px-4 py-5 sm:px-6 space-y-6 relative pb-12">
       {/* Toast Feedback */}
       {successToast && (
         <div className="fixed top-5 right-5 z-50 flex items-center gap-2.5 rounded-2xl border border-[#22ffb4]/40 bg-[#07081a]/95 px-4 py-3 text-xs font-bold text-[#22ffb4] shadow-[0_10px_35px_rgba(0,0,0,0.85)] backdrop-blur-2xl animate-in fade-in slide-in-from-top-3">
@@ -93,348 +150,449 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* 1. Header with greeting and payday status */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
-            Olá, {user?.displayName || 'você'}
-          </h1>
-          <p className="text-xs text-[#a9a8c6] font-mono-tech mt-1 flex items-center gap-2">
-            <Calendar className="h-3.5 w-3.5 text-[#22ffb4]" />
-            <span>
-              Próximo salário em:{' '}
-              <strong className="text-white">
-                {settings?.nextPayday ? formatDateBR(settings.nextPayday) : 'A definir'}
-              </strong>
-              {' '}({overview.daysRemaining} {overview.daysRemaining === 1 ? 'dia' : 'dias'} restantes)
+      {/* 1. Mobile-First Top Header (Avatar + Olá, Nome + Month + Theme + Eye) */}
+      <div className="flex items-center justify-between pt-1 gap-2">
+        {/* User avatar + Olá, Nome */}
+        <Link href="/dashboard/configuracoes" className="flex items-center gap-2.5 group min-w-0">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-tr from-[#22ffb4]/20 via-[#5b8cff]/20 to-[#8b5cf6]/30 border border-[#22ffb4]/50 shadow-[0_0_12px_rgba(34,255,180,0.25)] text-xs font-bold text-white transition group-hover:scale-105 overflow-hidden">
+            {user?.avatarUrl ? (
+              <img
+                src={user.avatarUrl}
+                alt={user.displayName || 'Avatar'}
+                className="h-full w-full object-cover"
+              />
+            ) : user?.displayName ? (
+              user.displayName.slice(0, 2).toUpperCase()
+            ) : (
+              'AT'
+            )}
+          </div>
+          <div className="min-w-0">
+            <span className="block text-[11px] font-mono-tech text-[#8f8ea8] leading-none">
+              Olá,
             </span>
-          </p>
-        </div>
+            <span className="block text-sm sm:text-base font-bold text-white leading-tight font-sora truncate max-w-[120px] sm:max-w-none">
+              {user?.displayName || 'você'}
+            </span>
+          </div>
+        </Link>
 
-        {/* Quick action buttons */}
-        <div className="flex items-center gap-3">
-          <button onClick={openNewExpense} className="btn-tech-primary !py-2.5 !px-4 !text-xs">
-            <Plus className="h-4 w-4" />
-            Nova Despesa
+        {/* Right side: Month Selector Pill + Theme Toggle + Eye Privacy Toggle */}
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          {/* Month Selector Pill */}
+          <div className="flex items-center gap-1 rounded-full bg-white/5 border border-white/10 px-2.5 sm:px-3 py-1.5 text-xs font-semibold text-white shadow-xs">
+            <span>{formattedMonth}</span>
+            <ChevronDown className="h-3.5 w-3.5 text-[#8f8ea8]" />
+          </div>
+
+          {/* Theme Toggle Button */}
+          <button
+            type="button"
+            onClick={toggleTheme}
+            title={theme === 'dark' ? 'Mudar para modo claro' : 'Mudar para modo escuro'}
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 border border-white/10 text-[#c9c8e2] hover:text-white hover:bg-white/10 transition cursor-pointer"
+          >
+            {theme === 'dark' ? (
+              <Sun className="h-4 w-4 text-amber-300" />
+            ) : (
+              <Moon className="h-4 w-4 text-indigo-400" />
+            )}
           </button>
-          <button onClick={openNewIncome} className="btn-tech-ghost !py-2.5 !px-4 !text-xs">
-            <ArrowUpRight className="h-4 w-4 text-[#22ffb4]" />
-            Receita
-          </button>
-          <button onClick={() => setIsBillModalOpen(true)} className="btn-tech-ghost !py-2.5 !px-4 !text-xs">
-            <Receipt className="h-4 w-4 text-[#5b8cff]" />
-            Nova Conta
+
+          {/* Eye Privacy Toggle */}
+          <button
+            type="button"
+            onClick={() => setHideValues(!hideValues)}
+            title={hideValues ? 'Mostrar valores' : 'Ocultar valores'}
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 border border-white/10 text-[#c9c8e2] hover:text-white hover:bg-white/10 transition cursor-pointer"
+          >
+            {hideValues ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
           </button>
         </div>
       </div>
 
-      {/* 2. Core Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Card Principal */}
-        <div className="tech-card beam-card p-6 sm:p-7 relative overflow-hidden">
-          <div className="flex items-center justify-between">
-            <span className="font-mono-tech text-xs uppercase tracking-wider text-[#a9a8c6]">
-              Dinheiro Disponível até o Salário
-            </span>
+      {/* 2. Hero Balance Card (Mobills/Nubank style - Centered, Numbers-First) */}
+      <div className="tech-card beam-card p-6 sm:p-7 relative overflow-hidden text-center">
+        {/* Top switch & info pill */}
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-1 bg-white/5 p-1 rounded-xl border border-white/10 text-[11px] font-mono-tech">
             <button
-              onClick={() => setShowFormulaDetails(!showFormulaDetails)}
-              className="flex items-center gap-1.5 rounded-full bg-white/5 border border-white/10 px-3 py-1 text-[11px] font-mono-tech text-[#c9c8e2] hover:text-[#22ffb4] hover:border-[#22ffb4]/30 transition"
+              type="button"
+              onClick={() => setBalanceViewMode('limit')}
+              className={`px-2.5 py-1 rounded-lg transition ${
+                balanceViewMode === 'limit'
+                  ? 'bg-[#22ffb4] text-[#04110c] font-bold shadow-xs'
+                  : 'text-[#8f8ea8] hover:text-white'
+              }`}
             >
-              <HelpCircle className="h-3.5 w-3.5 text-[#22ffb4]" />
-              <span>Como é calculado?</span>
+              Limite Diário
+            </button>
+            <button
+              type="button"
+              onClick={() => setBalanceViewMode('balance')}
+              className={`px-2.5 py-1 rounded-lg transition ${
+                balanceViewMode === 'balance'
+                  ? 'bg-[#5b8cff] text-white font-bold shadow-xs'
+                  : 'text-[#8f8ea8] hover:text-white'
+              }`}
+            >
+              Saldo em Conta
             </button>
           </div>
 
-          <div className="mt-4">
-            <div
-              className={`text-4xl sm:text-5xl font-black tracking-tight ${
-                overview.isDeficit ? 'text-rose-400' : 'text-white'
-              }`}
-            >
-              {formatCurrency(overview.availableForPlanningCents)}
-            </div>
+          <button
+            type="button"
+            onClick={() => setShowFormulaModal(true)}
+            className="flex items-center gap-1 text-[11px] font-mono-tech text-[#8f8ea8] hover:text-[#22ffb4] transition"
+            title="Como é calculado?"
+          >
+            <HelpCircle className="h-3.5 w-3.5" />
+          </button>
+        </div>
 
-            {overview.isDeficit ? (
-              <div className="mt-4 flex items-start gap-2.5 rounded-2xl bg-rose-950/40 border border-rose-500/30 p-3.5 text-xs text-rose-200">
-                <AlertTriangle className="h-4 w-4 shrink-0 text-rose-400 mt-0.5" />
-                <span>
-                  <strong>Aviso de Déficit Previsto:</strong> Suas contas pendentes e reserva
-                  superam o saldo disponível neste ciclo. Replaneje seus compromissos.
-                </span>
-              </div>
-            ) : (
-              <p className="mt-2 text-xs text-[#c9c8e2] leading-relaxed">
-                Valor livre para o dia a dia, com contas agendadas e reserva de segurança devidamente protegidas.
+        {/* Subtitle */}
+        <div className="text-xs uppercase font-mono-tech tracking-wider text-[#a9a8c6] mt-3">
+          {balanceViewMode === 'limit' ? 'Limite Diário Sugerido' : 'Saldo Total em Conta'}
+        </div>
+
+        {/* Big Value Display */}
+        <div className="my-2 flex items-center justify-center gap-2">
+          <div
+            className={`text-4xl sm:text-5xl font-black tracking-tight font-sans ${
+              overview.isDeficit && balanceViewMode === 'limit'
+                ? 'text-rose-400'
+                : balanceViewMode === 'limit'
+                ? 'text-[#22ffb4]'
+                : 'text-white'
+            }`}
+          >
+            {balanceViewMode === 'limit'
+              ? displayVal(overview.suggestedDailyLimitCents)
+              : displayVal(overview.currentBalanceCents)}
+          </div>
+        </div>
+
+        {/* Days remaining badge or deficit alert */}
+        <div className="flex items-center justify-center gap-2 text-xs font-mono-tech text-[#8f8ea8]">
+          <Calendar className="h-3.5 w-3.5 text-[#5b8cff]" />
+          <span>
+            {overview.daysRemaining} {overview.daysRemaining === 1 ? 'dia' : 'dias'} até o próximo salário
+            {settings?.nextPayday ? ` (${formatDateBR(settings.nextPayday)})` : ''}
+          </span>
+        </div>
+
+        {overview.isDeficit && (
+          <div className="mt-3 inline-flex items-center gap-2 rounded-xl bg-rose-500/10 border border-rose-500/30 px-3 py-1.5 text-xs text-rose-300">
+            <AlertTriangle className="h-3.5 w-3.5 text-rose-400 shrink-0" />
+            <span>Déficit projetado: ajuste despesas ou faturas</span>
+          </div>
+        )}
+
+        {/* Green & Red Pills Side by Side */}
+        <div className="mt-6 grid grid-cols-2 gap-3 max-w-md mx-auto">
+          {/* Receitas Pill */}
+          <button
+            type="button"
+            onClick={openNewIncome}
+            className="flex items-center justify-center gap-2 rounded-2xl tech-summary-income border p-3 transition group active:scale-95 cursor-pointer"
+          >
+            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full tech-summary-income-icon">
+              <ArrowUpRight className="h-4 w-4" />
+            </div>
+            <div className="text-left min-w-0">
+              <span className="block text-[10px] font-mono-tech uppercase tech-summary-income-label">Receitas</span>
+              <span className="block text-xs sm:text-sm font-bold tech-summary-income-value font-mono-tech whitespace-nowrap leading-tight">
+                {displayVal(overview.plannedIncomesCents || overview.incomesInPeriodCents)}
+              </span>
+            </div>
+          </button>
+
+          {/* Despesas Pill */}
+          <button
+            type="button"
+            onClick={openNewExpense}
+            className="flex items-center justify-center gap-2 rounded-2xl tech-summary-expense border p-3 transition group active:scale-95 cursor-pointer"
+          >
+            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full tech-summary-expense-icon">
+              <ArrowDownRight className="h-4 w-4" />
+            </div>
+            <div className="text-left min-w-0">
+              <span className="block text-[10px] font-mono-tech uppercase tech-summary-expense-label">Despesas</span>
+              <span className="block text-xs sm:text-sm font-bold tech-summary-expense-value font-mono-tech whitespace-nowrap leading-tight">
+                {displayVal(overview.expensesInPeriodCents)}
+              </span>
+            </div>
+          </button>
+        </div>
+
+        {/* Quick Actions Row */}
+        <div className="mt-5 pt-4 border-t border-white/10 flex items-center justify-center gap-3">
+          <button
+            onClick={openNewExpense}
+            className="btn-tech-primary !py-2 !px-4 !text-xs"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            <span>Nova Despesa</span>
+          </button>
+          <button
+            onClick={openNewIncome}
+            className="btn-tech-ghost !py-2 !px-4 !text-xs"
+          >
+            <ArrowUpRight className="h-3.5 w-3.5 text-[#22ffb4]" />
+            <span>Receita</span>
+          </button>
+          <button
+            onClick={() => setIsBillModalOpen(true)}
+            className="btn-tech-ghost !py-2 !px-4 !text-xs"
+          >
+            <Receipt className="h-3.5 w-3.5 text-[#5b8cff]" />
+            <span>Nova Conta</span>
+          </button>
+        </div>
+      </div>
+
+      {/* 3. Despesas por Categoria (Donut Chart + Legend, Matching Mockup) */}
+      <div className="tech-card p-5 sm:p-6">
+        <div className="flex items-center justify-between pb-3 border-b border-white/10">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-bold text-white">Despesas por Categoria</span>
+          </div>
+          <span className="text-xs font-mono-tech text-[#8f8ea8]">
+            {displayVal(overview.expensesInPeriodCents)}
+          </span>
+        </div>
+
+        <div className="mt-4">
+          <CategoryDonutChart
+            categories={categoryBreakdown}
+            totalCents={overview.expensesInPeriodCents}
+            hideValues={hideValues}
+            onAddExpense={openNewExpense}
+          />
+        </div>
+      </div>
+
+      {/* 4. Próximos Vencimentos / Contas a Pagar (Fintech Card with Tabs) */}
+      <div className="tech-card p-5 sm:p-6">
+        <div className="flex items-center justify-between pb-3 border-b border-white/10">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-bold text-white">Próximos Vencimentos</span>
+          </div>
+          <Link
+            href="/dashboard/contas"
+            className="text-xs font-mono-tech text-[#5b8cff] hover:text-[#22ffb4] flex items-center gap-1 transition"
+          >
+            Ver todas <ChevronRight className="h-3.5 w-3.5" />
+          </Link>
+        </div>
+
+        {/* Filter Tabs: Pendentes | Pagas */}
+        <div className="mt-4 flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setBillsTab('pending')}
+            className={`rounded-full px-3.5 py-1 text-xs font-semibold transition ${
+              billsTab === 'pending'
+                ? 'bg-[#22ffb4] text-[#04110c]'
+                : 'bg-white/5 text-[#8f8ea8] hover:text-white'
+            }`}
+          >
+            Pendentes
+          </button>
+          <button
+            type="button"
+            onClick={() => setBillsTab('paid')}
+            className={`rounded-full px-3.5 py-1 text-xs font-semibold transition ${
+              billsTab === 'paid'
+                ? 'bg-[#5b8cff] text-white'
+                : 'bg-white/5 text-[#8f8ea8] hover:text-white'
+            }`}
+          >
+            Pagas
+          </button>
+        </div>
+
+        {/* Bills list */}
+        <div className="mt-4 space-y-2.5">
+          {displayBills.length === 0 ? (
+            <div className="text-center py-6">
+              <CheckCircle2 className="mx-auto h-7 w-7 text-[#22ffb4] mb-1.5 opacity-80" />
+              <p className="text-xs text-[#8f8ea8]">
+                {billsTab === 'pending' ? 'Nenhuma conta pendente.' : 'Nenhuma conta quitada ainda.'}
               </p>
-            )}
-
-            {/* Formula breakdown drawer */}
-            {showFormulaDetails && (
-              <div className="mt-5 rounded-2xl border border-white/10 bg-[#07081a]/90 p-4 text-xs space-y-2 animate-fade-in font-mono-tech">
-                <div className="font-bold text-[#22ffb4] pb-1 border-b border-white/10 flex items-center justify-between">
-                  <span>COMPOSIÇÃO DO CÁLCULO</span>
-                  <span className="text-[10px] text-[#a9a8c6]">Sem dupla dedução</span>
-                </div>
-                <div className="flex justify-between text-[#c9c8e2]">
-                  <span>(+) Saldo financeiro atual:</span>
-                  <span className="font-semibold text-white">{formatCurrency(overview.currentBalanceCents)}</span>
-                </div>
-                <div className="flex justify-between text-[#c9c8e2]">
-                  <span>(+) Entradas previstas no período:</span>
-                  <span className="font-semibold text-[#22ffb4]">{formatCurrency(overview.plannedIncomesCents)}</span>
-                </div>
-                <div className="flex justify-between text-rose-400">
-                  <span>(-) Contas pendentes até o salário:</span>
-                  <span className="font-semibold">- {formatCurrency(overview.pendingBillsCents)}</span>
-                </div>
-                <div className="flex justify-between text-amber-300">
-                  <span>(-) Reserva de segurança blindada:</span>
-                  <span className="font-semibold">- {formatCurrency(overview.safetyReserveCents)}</span>
-                </div>
-                <div className="pt-2 border-t border-white/10 flex justify-between font-bold text-white text-sm">
-                  <span>(=) Dinheiro livre para gastar:</span>
-                  <span className="text-[#22ffb4]">{formatCurrency(overview.availableForPlanningCents)}</span>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Card Secundário */}
-        <div className="tech-card p-6 sm:p-7 bg-gradient-to-br from-[#0e1026] to-[#12163b] border-[#5b8cff]/30 relative overflow-hidden">
-          <div className="flex items-center justify-between">
-            <span className="font-mono-tech text-xs uppercase tracking-wider text-[#5b8cff]">
-              Limite Diário Sugerido
-            </span>
-            <span className="tech-pill !py-0.5 !px-2.5 !text-[10px] text-[#22ffb4]">
-              {overview.daysRemaining} {overview.daysRemaining === 1 ? 'dia restante' : 'dias restantes'}
-            </span>
-          </div>
-
-          <div className="mt-4">
-            <div className="flex items-baseline gap-2">
-              <span className="text-4xl sm:text-5xl font-black text-[#22ffb4] tracking-tight">
-                {formatCurrency(overview.suggestedDailyLimitCents)}
-              </span>
-              <span className="text-sm font-mono-tech text-[#c9c8e2]">/ dia</span>
             </div>
-
-            <p className="mt-2 text-xs text-[#c9c8e2] leading-relaxed">
-              {overview.isDeficit
-                ? 'Limite temporariamente fixado em R$ 0,00 devido ao déficit projetado.'
-                : 'Valor recomendado para gastar hoje mantendo seu equilíbrio até o próximo recebimento.'}
-            </p>
-
-            <div className="mt-5 flex items-center gap-2.5 rounded-2xl bg-white/5 border border-white/10 p-3 text-[11px] text-[#c9c8e2]">
-              <Sparkles className="h-4 w-4 text-[#22ffb4] shrink-0" />
-              <span>
-                Orientação dinâmica calculada em tempo real com base nos lançamentos informados.
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* 3. Stat Pills Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="tech-card p-4">
-          <span className="font-mono-tech text-[11px] text-[#a9a8c6] uppercase">Saldo Atual</span>
-          <div className="mt-1 text-lg font-bold text-white">
-            {formatCurrency(overview.currentBalanceCents)}
-          </div>
-        </div>
-
-        <div className="tech-card p-4">
-          <span className="font-mono-tech text-[11px] text-[#a9a8c6] uppercase">Contas Pendentes</span>
-          <div className="mt-1 text-lg font-bold text-rose-400">
-            {formatCurrency(overview.pendingBillsCents)}
-          </div>
-        </div>
-
-        <div className="tech-card p-4">
-          <span className="font-mono-tech text-[11px] text-[#a9a8c6] uppercase">Gastos no Ciclo</span>
-          <div className="mt-1 text-lg font-bold text-[#c9c8e2]">
-            {formatCurrency(overview.expensesInPeriodCents)}
-          </div>
-        </div>
-
-        <div className="tech-card p-4">
-          <span className="font-mono-tech text-[11px] text-[#a9a8c6] uppercase">Reserva Blindada</span>
-          <div className="mt-1 text-lg font-bold text-amber-300">
-            {formatCurrency(overview.safetyReserveCents)}
-          </div>
-        </div>
-      </div>
-
-      {/* 4. Category Breakdown & Upcoming Bills */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Gastos por Categoria */}
-        <div className="tech-card p-6">
-          <div className="flex items-center justify-between pb-4 border-b border-white/10">
-            <div className="flex items-center gap-2">
-              <PieChart className="h-4 w-4 text-[#22ffb4]" />
-              <h3 className="text-sm font-bold text-white">Gastos por Categoria</h3>
-            </div>
-            <span className="text-xs font-mono-tech text-[#a9a8c6]">
-              Total: {formatCurrency(overview.expensesInPeriodCents)}
-            </span>
-          </div>
-
-          <div className="mt-5">
-            {categoryBreakdown.length === 0 ? (
-              <div className="text-center py-8">
-                <p className="text-xs text-[#a9a8c6]">Nenhum gasto registrado neste ciclo.</p>
-                <button
-                  onClick={openNewExpense}
-                  className="mt-3 btn-tech-ghost !py-2 !px-4 !text-xs"
-                >
-                  <Plus className="h-3.5 w-3.5 text-[#22ffb4]" />
-                  Lançar Primeiro Gasto
-                </button>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {categoryBreakdown.map((cat) => (
-                  <div key={cat.id} className="space-y-1.5">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="font-medium text-white">{cat.name}</span>
-                      <div className="flex items-center gap-2 font-mono-tech">
-                        <span className="font-bold text-[#22ffb4]">{formatCurrency(cat.totalCents)}</span>
-                        <span className="text-[10px] text-[#a9a8c6]">({cat.percentage}%)</span>
-                      </div>
-                    </div>
-                    <div className="h-2 w-full rounded-full bg-white/5 overflow-hidden">
-                      <div
-                        className="h-full rounded-full transition-all duration-500 bg-gradient-to-r from-[#22ffb4] to-[#5b8cff]"
-                        style={{ width: `${cat.percentage}%` }}
-                      />
-                    </div>
+          ) : (
+            displayBills.map((bill) => (
+              <div
+                key={bill.id}
+                className="rounded-2xl border border-white/5 bg-white/5 p-3 text-xs transition hover:border-[#22ffb4]/30"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#5b8cff]/10 text-[#5b8cff] border border-[#5b8cff]/20 mt-0.5">
+                    {getCategoryIcon(bill.categoryId)}
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
 
-        {/* Próximos Vencimentos de Contas */}
-        <div className="tech-card p-6">
-          <div className="flex items-center justify-between pb-4 border-b border-white/10">
-            <div className="flex items-center gap-2">
-              <Receipt className="h-4 w-4 text-rose-400" />
-              <h3 className="text-sm font-bold text-white">Próximos Vencimentos</h3>
-            </div>
-            <Link
-              href="/dashboard/contas"
-              className="text-xs font-mono-tech text-[#5b8cff] hover:text-[#22ffb4] flex items-center gap-1 transition"
-            >
-              Gerenciar <ChevronRight className="h-3.5 w-3.5" />
-            </Link>
-          </div>
-
-          <div className="mt-5">
-            {upcomingBills.length === 0 ? (
-              <div className="text-center py-8">
-                <CheckCircle2 className="mx-auto h-8 w-8 text-[#22ffb4] mb-2" />
-                <p className="text-xs text-[#c9c8e2]">Todas as contas do período estão em dia!</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {upcomingBills.map((bill) => (
-                  <div
-                    key={bill.id}
-                    className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 p-3.5 text-xs transition hover:border-[#22ffb4]/30"
-                  >
-                    <div>
-                      <div className="font-bold text-white">{bill.description}</div>
-                      <div className="text-[11px] font-mono-tech text-[#a9a8c6] mt-0.5">
-                        Vencimento: {formatDateBR(bill.dueDate)}
+                  <div className="min-w-0 flex-1 space-y-1">
+                    {/* Row 1: Title & Amount */}
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="font-semibold text-white truncate text-xs sm:text-sm">
+                        {bill.description}
                       </div>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                      <span className="font-bold text-rose-400 font-mono-tech">
-                        {formatCurrency(bill.amountCents)}
+                      <span className="font-mono-tech font-bold text-rose-400 whitespace-nowrap shrink-0 text-xs sm:text-sm">
+                        {displayVal(bill.amountCents)}
                       </span>
-                      <button
-                        type="button"
-                        onClick={() => handlePayBill(bill.id, bill.description)}
-                        disabled={payingBillId === bill.id}
-                        className="rounded-full bg-gradient-to-r from-[#22ffb4] to-[#5fffc8] px-3.5 py-1.5 text-[11px] font-bold text-[#04110c] shadow-[0_0_12px_rgba(34,255,180,0.3)] transition hover:scale-105 active:scale-95 disabled:opacity-60 flex items-center gap-1.5 cursor-pointer"
-                      >
-                        {payingBillId === bill.id ? (
-                          <>
-                            <span className="h-2.5 w-2.5 animate-spin rounded-full border-2 border-[#04110c] border-t-transparent inline-block" />
-                            <span>Baixando...</span>
-                          </>
+                    </div>
+
+                    {/* Row 2: Due Date & Action */}
+                    <div className="flex items-center justify-between gap-2 pt-0.5">
+                      <div className="text-[11px] font-mono-tech text-[#8f8ea8] truncate">
+                        Vence em {formatDateBR(bill.dueDate)}
+                      </div>
+
+                      <div className="shrink-0">
+                        {bill.status === 'pending' ? (
+                          <button
+                            type="button"
+                            onClick={() => setConfirmingBill(bill)}
+                            disabled={payingBillId === bill.id}
+                            className="rounded-full btn-pay-action px-3.5 py-1 text-[11px] font-bold shadow-xs transition active:scale-95 disabled:opacity-60 cursor-pointer"
+                          >
+                            Pagar
+                          </button>
                         ) : (
-                          'Pagar'
+                          <span className="inline-flex items-center gap-1 rounded-full bg-[#22ffb4]/10 text-[#22ffb4] border border-[#22ffb4]/30 px-2.5 py-0.5 text-[10px] font-mono-tech font-bold">
+                            <CheckCircle2 className="h-3 w-3" /> Pago
+                          </span>
                         )}
-                      </button>
+                      </div>
                     </div>
                   </div>
-                ))}
+                </div>
               </div>
-            )}
-          </div>
+            ))
+          )}
         </div>
       </div>
 
-      {/* 5. Recent Transactions */}
-      <div className="tech-card p-6">
-        <div className="flex items-center justify-between pb-4 border-b border-white/10">
-          <h3 className="text-sm font-bold text-white">Últimas Transações</h3>
+      {/* 5. Últimas Transações (Clean Grouped Style from Mockup Phone 2) */}
+      <div className="tech-card p-5 sm:p-6">
+        <div className="flex items-center justify-between pb-3 border-b border-white/10">
+          <span className="text-sm font-bold text-white">Últimas Transações</span>
           <Link
             href="/dashboard/transacoes"
             className="text-xs font-mono-tech text-[#5b8cff] hover:text-[#22ffb4] flex items-center gap-1 transition"
           >
-            Ver todas ({transactions.length}) <ChevronRight className="h-3.5 w-3.5" />
+            Ver extrato ({transactions.length}) <ChevronRight className="h-3.5 w-3.5" />
           </Link>
         </div>
 
-        <div className="mt-5">
+        <div className="mt-3 divide-y divide-white/5">
           {recentTransactions.length === 0 ? (
-            <div className="text-center py-6 text-xs text-[#a9a8c6]">
-              Nenhuma transação lançada ainda. Clique em &quot;Nova Despesa&quot; acima.
+            <div className="text-center py-6 text-xs text-[#8f8ea8]">
+              Nenhuma transação lançada ainda.
             </div>
           ) : (
-            <div className="divide-y divide-white/5">
-              {recentTransactions.map((tx) => (
-                <div key={tx.id} className="flex items-center justify-between py-3 text-xs">
-                  <div className="flex items-center gap-3">
-                    <div
-                      className={`flex h-9 w-9 items-center justify-center rounded-xl ${
-                        tx.type === 'income'
-                          ? 'bg-[#22ffb4]/10 text-[#22ffb4] border border-[#22ffb4]/30'
-                          : 'bg-rose-500/10 text-rose-400 border border-rose-500/30'
-                      }`}
-                    >
-                      {tx.type === 'income' ? (
-                        <ArrowUpRight className="h-4 w-4" />
-                      ) : (
-                        <ArrowDownRight className="h-4 w-4" />
-                      )}
-                    </div>
-                    <div>
-                      <div className="font-semibold text-white">{tx.description}</div>
-                      <div className="text-[10px] font-mono-tech text-[#a9a8c6]">
-                        {formatDateBR(tx.date)}
-                      </div>
-                    </div>
-                  </div>
-
+            recentTransactions.map((tx) => (
+              <div key={tx.id} className="flex items-center justify-between py-2.5 text-xs gap-3">
+                <div className="flex items-center gap-2.5 min-w-0 flex-1 overflow-hidden">
                   <div
-                    className={`font-mono-tech font-bold ${
-                      tx.type === 'income' ? 'text-[#22ffb4]' : 'text-white'
+                    className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${
+                      tx.type === 'income'
+                        ? 'bg-[#22ffb4]/15 text-[#22ffb4] border border-[#22ffb4]/30'
+                        : 'bg-rose-500/15 text-rose-400 border border-rose-500/30'
                     }`}
                   >
-                    {tx.type === 'income' ? '+' : '-'} {formatCurrency(tx.amountCents)}
+                    {tx.type === 'income' ? (
+                      <ArrowUpRight className="h-4 w-4" />
+                    ) : (
+                      getCategoryIcon(tx.categoryId)
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1 overflow-hidden">
+                    <div className="font-semibold text-white truncate text-xs sm:text-sm">{tx.description}</div>
+                    <div className="text-[10px] font-mono-tech text-[#8f8ea8] truncate">
+                      {formatDateBR(tx.date)}
+                    </div>
                   </div>
                 </div>
-              ))}
-            </div>
+
+                <div
+                  className={`font-mono-tech font-bold shrink-0 text-right whitespace-nowrap text-xs sm:text-sm ${
+                    tx.type === 'income' ? 'text-[#22ffb4]' : 'text-white'
+                  }`}
+                >
+                  {tx.type === 'income' ? '+' : '-'} {displayVal(tx.amountCents)}
+                </div>
+              </div>
+            ))
           )}
         </div>
       </div>
+
+      {/* Formula Modal (Clean popover, only on demand) */}
+      {showFormulaModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-fade-in">
+          <div className="tech-card tech-modal-card w-full max-w-sm p-5 relative space-y-4">
+            <div className="flex items-center justify-between pb-2 border-b border-white/10">
+              <span className="text-xs font-bold font-mono-tech text-[#22ffb4]">
+                CÁLCULO DO LIMITE DIÁRIO
+              </span>
+              <button
+                type="button"
+                onClick={() => setShowFormulaModal(false)}
+                className="text-[#8f8ea8] hover:text-white"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="space-y-2 text-xs font-mono-tech">
+              <div className="flex justify-between text-[#c9c8e2]">
+                <span>Saldo em conta:</span>
+                <span className="font-semibold text-white">
+                  {formatCurrency(overview.currentBalanceCents)}
+                </span>
+              </div>
+              <div className="flex justify-between text-[#c9c8e2]">
+                <span>(+) Entradas previstas:</span>
+                <span className="font-semibold text-[#22ffb4]">
+                  {formatCurrency(overview.plannedIncomesCents)}
+                </span>
+              </div>
+              <div className="flex justify-between text-rose-400">
+                <span>(-) Contas pendentes:</span>
+                <span className="font-semibold">- {formatCurrency(overview.pendingBillsCents)}</span>
+              </div>
+              <div className="flex justify-between text-amber-300">
+                <span>(-) Reserva blindada:</span>
+                <span className="font-semibold">- {formatCurrency(overview.safetyReserveCents)}</span>
+              </div>
+              <div className="pt-2 border-t border-white/10 flex justify-between font-bold text-white">
+                <span>(=) Dinheiro livre:</span>
+                <span className="text-[#22ffb4]">
+                  {formatCurrency(overview.availableForPlanningCents)}
+                </span>
+              </div>
+              <div className="flex justify-between text-[#8f8ea8] pt-1">
+                <span>(÷) Dias restantes:</span>
+                <span>{overview.daysRemaining} dias</span>
+              </div>
+              <div className="pt-2 border-t border-white/10 flex justify-between font-bold text-sm text-[#22ffb4]">
+                <span>(=) Limite diário:</span>
+                <span>{formatCurrency(overview.suggestedDailyLimitCents)}/dia</span>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setShowFormulaModal(false)}
+              className="w-full btn-tech-primary !py-2 !text-xs"
+            >
+              Entendido
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Modals */}
       <TransactionModal
@@ -443,6 +601,15 @@ export default function DashboardPage() {
         defaultType={txModalType}
       />
       <BillModal isOpen={isBillModalOpen} onClose={() => setIsBillModalOpen(false)} />
+      <ConfirmPaymentModal
+        isOpen={!!confirmingBill}
+        onClose={() => setConfirmingBill(null)}
+        onConfirm={executePayment}
+        billDescription={confirmingBill?.description || ''}
+        billAmountCents={confirmingBill?.amountCents || 0}
+        billDueDate={confirmingBill?.dueDate}
+        isPaying={payingBillId === confirmingBill?.id}
+      />
     </div>
   );
 }

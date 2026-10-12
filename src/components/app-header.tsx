@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/auth/auth-context';
+import { useTheme } from '@/lib/context/theme-context';
 import {
   LayoutDashboard,
   Receipt,
@@ -13,12 +14,15 @@ import {
   Plus,
   LogOut,
   Wallet,
+  Sun,
+  Moon,
 } from 'lucide-react';
 import { TransactionModal } from './modals/transaction-modal';
 
 export function AppHeader() {
   const pathname = usePathname();
   const { user, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const navLinks = [
@@ -31,7 +35,7 @@ export function AppHeader() {
 
   return (
     <>
-      <header className="sticky top-0 z-30 border-b border-white/10 bg-[#07081ac7] backdrop-blur-xl transition-colors">
+      <header className="hidden md:block sticky top-0 z-30 border-b border-white/10 bg-[#07081ac7] backdrop-blur-xl transition-colors">
         <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6">
           {/* Logo */}
           <div className="flex items-center gap-6">
@@ -82,21 +86,51 @@ export function AppHeader() {
               <span>Nova Despesa</span>
             </button>
 
-            {/* User info / Logout */}
-            <div className="flex items-center gap-2 pl-3 border-l border-white/10">
-              <div className="hidden sm:flex flex-col text-right">
-                <span className="text-xs font-bold text-white leading-tight">
-                  {user?.displayName || 'Usuário'}
-                </span>
-                <span className="text-[10px] font-mono-tech text-[#a9a8c6] truncate max-w-[120px]">
-                  {user?.email}
-                </span>
-              </div>
+            {/* User info, Theme Toggle & Logout */}
+            <div className="flex items-center gap-3 pl-3 border-l border-white/10">
+              <Link href="/dashboard/configuracoes" className="flex items-center gap-2.5 group">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-tr from-[#22ffb4]/20 to-[#5b8cff]/20 border border-[#22ffb4]/40 overflow-hidden text-xs font-bold text-white transition group-hover:scale-105">
+                  {user?.avatarUrl ? (
+                    <img
+                      src={user.avatarUrl}
+                      alt={user.displayName || 'Avatar'}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : user?.displayName ? (
+                    user.displayName.slice(0, 2).toUpperCase()
+                  ) : (
+                    'AT'
+                  )}
+                </div>
+                <div className="hidden sm:flex flex-col text-right">
+                  <span className="text-xs font-bold text-white leading-tight group-hover:text-[#22ffb4] transition">
+                    {user?.displayName || 'Usuário'}
+                  </span>
+                  <span className="text-[10px] font-mono-tech text-[#a9a8c6] truncate max-w-[120px]">
+                    {user?.email}
+                  </span>
+                </div>
+              </Link>
 
+              {/* Theme Toggle Button */}
+              <button
+                type="button"
+                onClick={toggleTheme}
+                title={theme === 'dark' ? 'Mudar para modo claro' : 'Mudar para modo escuro'}
+                className="rounded-xl p-2 text-[#a9a8c6] hover:bg-white/10 hover:text-white transition cursor-pointer"
+              >
+                {theme === 'dark' ? (
+                  <Sun className="h-4 w-4 text-amber-300" />
+                ) : (
+                  <Moon className="h-4 w-4 text-indigo-400" />
+                )}
+              </button>
+
+              {/* Logout Button */}
               <button
                 onClick={logout}
                 title="Sair da conta"
-                className="rounded-xl p-2 text-[#a9a8c6] hover:bg-white/10 hover:text-rose-400 transition"
+                className="rounded-xl p-2 text-[#a9a8c6] hover:bg-white/10 hover:text-rose-400 transition cursor-pointer"
               >
                 <LogOut className="h-4 w-4" />
               </button>

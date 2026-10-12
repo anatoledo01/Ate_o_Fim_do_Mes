@@ -327,3 +327,419 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   margin-right: 4px;
 }
 
+/* Summary Cards: Receitas & Despesas (Dark Mode default) */
+.tech-summary-income {
+  background-color: #0e122a;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+.tech-summary-income:hover {
+  border-color: rgba(34, 255, 180, 0.4);
+}
+.tech-summary-income-icon {
+  background-color: rgba(34, 255, 180, 0.15);
+  color: #22ffb4;
+}
+.tech-summary-income-label {
+  color: #8f8ea8;
+}
+.tech-summary-income-value {
+  color: #22ffb4;
+}
+
+.tech-summary-expense {
+  background-color: #0e122a;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+.tech-summary-expense:hover {
+  border-color: rgba(244, 63, 94, 0.4);
+}
+.tech-summary-expense-icon {
+  background-color: rgba(244, 63, 94, 0.15);
+  color: #fb7185;
+}
+.tech-summary-expense-label {
+  color: #8f8ea8;
+}
+.tech-summary-expense-value {
+  color: #fb7185;
+}
+
+/* PWA Floating Prompt */
+.pwa-prompt-pill {
+  background-color: rgba(12, 13, 36, 0.92);
+  border-color: rgba(34, 255, 180, 0.3);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.pwa-install-btn {
+  background-color: #22ffb4;
+  color: #04110c;
+}
+.pwa-install-btn:hover {
+  background-color: #5fffc8;
+}
+.pwa-dismiss-btn {
+  color: #8f8ea8;
+}
+.pwa-dismiss-btn:hover {
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Pay Action Button */
+.btn-pay-action {
+  background-color: #22ffb4;
+  color: #04110c;
+}
+.btn-pay-action:hover {
+  background-color: #5fffc8;
+}
+
+/* Curved Bottom Nav (Dark Mode Default) */
+.nav-curved-container {
+  filter: drop-shadow(0 10px 28px rgba(34, 255, 180, 0.12));
+}
+.nav-curved-svg {
+  fill: #0d0f28;
+  stroke: rgba(255, 255, 255, 0.1);
+}
+.nav-floating-indicator {
+  background-color: #0d0f28;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  outline: 2px solid #22ffb4;
+  box-shadow: 0 0 18px rgba(34, 255, 180, 0.4);
+}
+.nav-floating-icon {
+  color: #22ffb4;
+}
+.nav-inactive-icon {
+  color: #8f8ea8;
+}
+.nav-inactive-icon:hover {
+  color: #22ffb4;
+}
+
+/* Donut chart base track */
+.donut-base-track {
+  stroke: rgba(255, 255, 255, 0.05);
+}
+
+/* Modal and form controls (Dark default) */
+.tech-modal-card {
+  background-color: rgba(12, 13, 36, 0.96);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+.tech-input {
+  background-color: #07081a;
+  border-color: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+.tech-toggle-group {
+  background-color: #07081a;
+  border-color: rgba(255, 255, 255, 0.05);
+}
+
+/* ========================================================
+   LIGHT MODE OVERRIDES & DESIGN TOKENS
+   ======================================================== */
+html.light {
+  --bg: #f4f6fc;
+  --text: #0f1021;
+  --soft: #383b5c;
+  --muted: #5e6284;
+  --accent: #059669;
+  --blue: #2563eb;
+  --violet: #7c3aed;
+  --magenta: #a855f7;
+  --pink: #ec4899;
+  --glass: rgba(18, 22, 60, 0.04);
+  --line: rgba(18, 22, 60, 0.09);
+  --card-bg: #ffffff;
+}
+
+html.light body {
+  background-color: var(--bg);
+  color: var(--text);
+}
+
+/* Cards & Containers in Light Mode */
+html.light .tech-card {
+  background: #ffffff !important;
+  border-color: rgba(18, 22, 60, 0.08) !important;
+  box-shadow: 0 4px 20px rgba(18, 22, 60, 0.04) !important;
+}
+
+html.light .tech-card:hover {
+  border-color: rgba(37, 99, 235, 0.3) !important;
+  box-shadow: 0 16px 36px rgba(18, 22, 60, 0.08), 0 0 0 1px rgba(37, 99, 235, 0.15) !important;
+}
+
+html.light .beam-card::after {
+  background: radial-gradient(400px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(37, 99, 235, 0.06), transparent 70%);
+}
+
+html.light .ambient-glow {
+  background: radial-gradient(1100px 800px at 78% 30%, rgba(124, 58, 237, 0.05), transparent 65%),
+    radial-gradient(900px 600px at 15% 90%, rgba(5, 150, 105, 0.05), transparent 65%),
+    radial-gradient(700px 500px at 0% 0%, rgba(37, 99, 235, 0.05), transparent 65%);
+}
+
+/* Summary Cards (Receitas & Despesas) in Light Mode */
+html.light .tech-summary-income {
+  background-color: #f0fdf4 !important;
+  border-color: #bbf7d0 !important;
+  box-shadow: 0 2px 10px rgba(16, 185, 129, 0.08) !important;
+}
+html.light .tech-summary-income:hover {
+  border-color: #4ade80 !important;
+}
+html.light .tech-summary-income-icon {
+  background-color: #dcfce7 !important;
+  color: #059669 !important;
+}
+html.light .tech-summary-income-label {
+  color: #047857 !important;
+}
+html.light .tech-summary-income-value {
+  color: #059669 !important;
+}
+
+html.light .tech-summary-expense {
+  background-color: #fff1f2 !important;
+  border-color: #fecdd3 !important;
+  box-shadow: 0 2px 10px rgba(244, 63, 94, 0.08) !important;
+}
+html.light .tech-summary-expense:hover {
+  border-color: #fb7185 !important;
+}
+html.light .tech-summary-expense-icon {
+  background-color: #ffe4e6 !important;
+  color: #e11d48 !important;
+}
+html.light .tech-summary-expense-label {
+  color: #be123c !important;
+}
+html.light .tech-summary-expense-value {
+  color: #e11d48 !important;
+}
+
+/* Buttons in Light Mode */
+html.light .btn-tech-primary {
+  background: linear-gradient(135deg, #10b981, #059669) !important;
+  background-image: linear-gradient(135deg, #10b981, #059669) !important;
+  animation: none !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(5, 150, 105, 0.25) !important;
+  box-shadow: 0 4px 14px rgba(5, 150, 105, 0.2) !important;
+}
+html.light .btn-tech-primary:hover {
+  background: linear-gradient(135deg, #34d399, #059669) !important;
+  background-image: linear-gradient(135deg, #34d399, #059669) !important;
+  box-shadow: 0 6px 20px rgba(5, 150, 105, 0.3) !important;
+}
+html.light .btn-tech-primary::before {
+  display: none !important;
+  content: none !important;
+  opacity: 0 !important;
+}
+
+html.light .btn-tech-ghost {
+  color: #0f1021 !important;
+  background-color: #ffffff !important;
+  border-color: rgba(18, 22, 60, 0.12) !important;
+  box-shadow: 0 2px 8px rgba(18, 22, 60, 0.04) !important;
+}
+html.light .btn-tech-ghost:hover {
+  background-color: #f1f3fa !important;
+  border-color: rgba(18, 22, 60, 0.2) !important;
+}
+
+html.light .btn-pay-action {
+  background: linear-gradient(135deg, #10b981, #059669) !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25) !important;
+}
+html.light .btn-pay-action:hover {
+  background: linear-gradient(135deg, #34d399, #059669) !important;
+}
+
+/* PWA prompt in Light Mode */
+html.light .pwa-prompt-pill {
+  background-color: rgba(255, 255, 255, 0.98) !important;
+  border-color: rgba(18, 22, 60, 0.12) !important;
+  box-shadow: 0 10px 30px rgba(18, 22, 60, 0.14) !important;
+}
+html.light .pwa-install-btn {
+  background: linear-gradient(135deg, #10b981, #059669) !important;
+  color: #ffffff !important;
+}
+html.light .pwa-install-btn:hover {
+  background: linear-gradient(135deg, #34d399, #059669) !important;
+}
+html.light .pwa-dismiss-btn {
+  color: #5e6284 !important;
+}
+html.light .pwa-dismiss-btn:hover {
+  background-color: rgba(18, 22, 60, 0.07) !important;
+  color: #0f1021 !important;
+}
+
+/* Bottom Nav in Light Mode */
+html.light .nav-curved-container {
+  filter: drop-shadow(0 10px 24px rgba(18, 22, 60, 0.08)) !important;
+}
+html.light .nav-curved-svg {
+  fill: #ffffff !important;
+  stroke: rgba(18, 22, 60, 0.09) !important;
+}
+html.light .nav-floating-indicator {
+  background-color: #ffffff !important;
+  border: 1px solid rgba(18, 22, 60, 0.1) !important;
+  outline: 2px solid #059669 !important;
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.22) !important;
+}
+html.light .nav-floating-icon {
+  color: #059669 !important;
+}
+html.light .nav-inactive-icon {
+  color: #5e6284 !important;
+}
+html.light .nav-inactive-icon:hover {
+  color: #059669 !important;
+}
+
+/* Donut chart in Light Mode */
+html.light .donut-base-track {
+  stroke: rgba(18, 22, 60, 0.08) !important;
+}
+
+/* Modals & Forms in Light Mode */
+html.light .tech-modal-card {
+  background-color: #ffffff !important;
+  border-color: rgba(18, 22, 60, 0.1) !important;
+  box-shadow: 0 20px 60px rgba(18, 22, 60, 0.16) !important;
+}
+html.light .tech-input {
+  background-color: #f1f3fa !important;
+  border-color: rgba(18, 22, 60, 0.12) !important;
+  color: #0f1021 !important;
+}
+html.light .tech-toggle-group {
+  background-color: #f1f3fa !important;
+  border-color: rgba(18, 22, 60, 0.08) !important;
+}
+
+/* Text & Accent Adaptations in Light Mode */
+html.light .text-white {
+  color: #0f1021 !important;
+}
+html.light .text-\[\#f2f1fa\] {
+  color: #0f1021 !important;
+}
+html.light .text-\[\#c9c8e2\] {
+  color: #383b5c !important;
+}
+html.light .text-\[\#8f8ea8\],
+html.light .text-\[\#a9a8c6\],
+html.light .text-slate-400,
+html.light .text-slate-500 {
+  color: #5e6284 !important;
+}
+html.light .text-slate-300 {
+  color: #383b5c !important;
+}
+html.light .text-\[\#22ffb4\] {
+  color: #059669 !important;
+}
+html.light .text-rose-400 {
+  color: #e11d48 !important;
+}
+html.light .text-amber-400 {
+  color: #d97706 !important;
+}
+html.light .text-amber-300 {
+  color: #b45309 !important;
+}
+
+/* Hardcoded Dark Hex Overrides */
+html.light .bg-\[\#07081a\] {
+  background-color: #f4f6fc !important;
+}
+html.light .bg-\[\#07081ac7\] {
+  background-color: rgba(244, 246, 252, 0.92) !important;
+}
+html.light .bg-\[\#0e122a\],
+html.light .bg-\[\#0e1026\],
+html.light .bg-\[\#0e1026\]\/90,
+html.light .bg-\[\#0c0d24\],
+html.light .bg-\[\#0c0d24\]\/90,
+html.light .bg-\[\#0c0d24\]\/95,
+html.light .bg-\[\#0d0e26\],
+html.light .bg-\[\#0d0f28\],
+html.light .bg-\[\#17182B\] {
+  background-color: #ffffff !important;
+  border-color: rgba(18, 22, 60, 0.08) !important;
+}
+
+/* Overlays & Borders */
+html.light .bg-white\/5 {
+  background-color: rgba(18, 22, 60, 0.04) !important;
+}
+html.light .bg-white\/10 {
+  background-color: rgba(18, 22, 60, 0.07) !important;
+}
+html.light .border-white\/5 {
+  border-color: rgba(18, 22, 60, 0.06) !important;
+}
+html.light .border-white\/10 {
+  border-color: rgba(18, 22, 60, 0.1) !important;
+}
+html.light .border-white\/20 {
+  border-color: rgba(18, 22, 60, 0.16) !important;
+}
+html.light .divide-white\/5 > :not([hidden]) ~ :not([hidden]) {
+  border-color: rgba(18, 22, 60, 0.06) !important;
+}
+html.light .divide-white\/10 > :not([hidden]) ~ :not([hidden]) {
+  border-color: rgba(18, 22, 60, 0.1) !important;
+}
+
+/* Alerts & Badges in Light Mode */
+html.light .bg-rose-500\/10 {
+  background-color: #fff1f2 !important;
+}
+html.light .border-rose-500\/30 {
+  border-color: #fecdd3 !important;
+}
+html.light .text-rose-300 {
+  color: #be123c !important;
+}
+
+html.light .bg-\[\#22ffb4\]\/10 {
+  background-color: #ecfdf5 !important;
+}
+html.light .border-\[\#22ffb4\]\/30 {
+  border-color: #a7f3d0 !important;
+}
+
+/* Inputs, Selects & Forms in Light Mode */
+html.light input:not([type="checkbox"]):not([type="radio"]),
+html.light select,
+html.light textarea {
+  background-color: #f1f3fa !important;
+  color: #0f1021 !important;
+  border-color: rgba(18, 22, 60, 0.12) !important;
+}
+html.light input::placeholder,
+html.light textarea::placeholder {
+  color: #888ba3 !important;
+}
+html.light select option {
+  background-color: #ffffff !important;
+  color: #0f1021 !important;
+}
+html.light input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: none;
+}
+
+

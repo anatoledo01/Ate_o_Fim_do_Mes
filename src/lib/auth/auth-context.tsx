@@ -104,11 +104,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const { data, error } = await supabase.auth.signInWithPassword({ email: normalizedEmail, password });
       if (error) {
         setIsLoading(false);
-        const msg = error.message.toLowerCase();
-        if (msg.includes('invalid login credentials') || msg.includes('invalid credentials')) {
-          return { error: 'E-mail ou senha incorretos. Tente novamente.' };
-        }
-        return { error: error.message };
+        return { error: 'E-mail ou senha inválidos.' };
       }
       if (data.user) {
         let profile = StorageRepository.getProfile(data.user.id);
@@ -143,7 +139,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const verification = StorageRepository.verifyCredentials(normalizedEmail, password);
     if (verification.error || !verification.account) {
       setIsLoading(false);
-      return { error: verification.error || 'Credenciais inválidas.' };
+      return { error: 'E-mail ou senha inválidos.' };
     }
 
     const userId = verification.account.userId;
@@ -165,7 +161,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     email: string,
     password?: string,
     displayName?: string,
-    overwriteExisting: boolean = true
+    overwriteExisting: boolean = false
   ): Promise<{ error?: string }> => {
     setIsLoading(true);
     const normalizedEmail = email.toLowerCase().trim();
@@ -177,22 +173,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // 1. Bloqueio prévio: verificar se o e-mail já existe no dispositivo local (apenas se overwriteExisting for falso)
     if (!overwriteExisting && StorageRepository.isEmailRegistered(normalizedEmail)) {
-      // Se a senha bater com o registro existente, faz login automaticamente!
-      if (password) {
-        const verify = StorageRepository.verifyCredentials(normalizedEmail, password);
-        if (!verify.error && verify.account) {
-          const profile = StorageRepository.getProfile(verify.account.userId);
-          if (profile) {
-            setUser(profile);
-            setIsDemoMode(false);
-            localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(profile));
-            setIsLoading(false);
-            return {};
-          }
-        }
-      }
       setIsLoading(false);
-      return { error: 'Este e-mail já está cadastrado. Faça login na sua conta.' };
+      return { error: 'Não é possível cadastrar com este e-mail. Esta conta já existe. Por favor, faça login.' };
     }
 
     // 2. Cadastro no Supabase com proteção estrita contra duplicidade
@@ -218,6 +200,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         Boolean(data?.user && Array.isArray(data.user.identities) && data.user.identities.length === 0);
 
       if (isDuplicateInSupabase) {
+        if (!overwriteExisting) {
+          setIsLoading(false);
+          return { error: 'Não é possível cadastrar com este e-mail. Esta conta já existe. Por favor, faça login.' };
+        }
+
         // Tenta autenticar diretamente no Supabase com a senha fornecida
         const loginRes = await supabase.auth.signInWithPassword({
           email: normalizedEmail,
@@ -276,10 +263,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
         }
 
-        if (!overwriteExisting) {
-          setIsLoading(false);
-          return { error: 'Este e-mail já está cadastrado. Faça login na sua conta.' };
-        }
+        setIsLoading(false);
+        return { error: 'Não é possível cadastrar com este e-mail. Esta conta já existe. Por favor, faça login.' };
       }
 
       if (error && !overwriteExisting) {

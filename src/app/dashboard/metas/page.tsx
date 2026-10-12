@@ -31,37 +31,39 @@ export default function MetasPage() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 space-y-6">
       {/* Top Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white font-sora flex items-center gap-2">
-            <Target className="h-6 w-6 text-[#c058ff]" />
-            Planejamento e Metas
-          </h1>
-          <p className="text-xs text-slate-400 mt-1">
-            Defina metas financeiras e estabeleça limites mensais para guiar seus hábitos.
-          </p>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-tr from-[#8b5cf6]/20 to-[#ff4fd8]/20 text-[#c058ff] border border-[#c058ff]/30 shadow-xs">
+            <Target className="h-5 w-5" />
+          </div>
+          <div>
+            <h1 className="text-lg sm:text-xl font-bold tracking-tight text-white font-sora">
+              Metas e Objetivos
+            </h1>
+            <span className="text-xs font-mono-tech text-[#8f8ea8]">
+              {goals.length} {goals.length === 1 ? 'meta ativa' : 'metas ativas'}
+            </span>
+          </div>
         </div>
 
         <button
           onClick={() => setIsModalOpen(true)}
-          className="btn-tech-primary"
+          className="btn-tech-primary !py-2 !px-3.5 !text-xs"
         >
-          <span className="flex items-center gap-1.5">
-            <Plus className="h-4 w-4" />
-            Nova Meta
-          </span>
+          <Plus className="h-4 w-4" />
+          <span className="hidden sm:inline">Nova Meta</span>
         </button>
       </div>
 
       {/* Monthly Budget Ceiling Setting */}
-      <div className="tech-card p-5">
-        <h3 className="text-sm font-bold text-white font-sora flex items-center gap-2">
-          <Shield className="h-4 w-4 text-[#5b8cff]" />
-          Teto de Gastos Mensal
-        </h3>
-        <p className="text-xs text-slate-400 mt-1">
-          Defina o valor máximo que você pretende desembolsar ao longo de um mês completo.
-        </p>
+      <div className="tech-card p-4 sm:p-5">
+        <div className="flex items-center justify-between">
+          <h3 className="text-xs sm:text-sm font-bold text-white font-sora flex items-center gap-2">
+            <Shield className="h-4 w-4 text-[#5b8cff]" />
+            Teto de Gastos Mensal
+          </h3>
+          <span className="text-[10px] font-mono-tech text-[#8f8ea8]">Orçamento Global</span>
+        </div>
 
         <form onSubmit={handleSaveBudgetLimit} className="mt-4 flex flex-col sm:flex-row items-center gap-3">
           <div className="relative w-full sm:w-64">
@@ -74,7 +76,7 @@ export default function MetasPage() {
               value={monthlyLimitStr}
               onChange={(e) => setMonthlyLimitStr(formatCurrencyInput(e.target.value))}
               placeholder="Ex: 4.000,00"
-              className="w-full rounded-xl border border-white/10 bg-[#07081a] py-2 pl-10 pr-3 text-sm font-semibold font-mono text-white placeholder:text-slate-500 focus:border-[#5b8cff] focus:outline-hidden transition"
+              className="w-full rounded-xl border border-white/10 tech-input py-2 pl-10 pr-3 text-sm font-semibold font-mono text-white placeholder:text-slate-500 focus:border-[#5b8cff] focus:outline-hidden transition"
             />
           </div>
           <button

@@ -31,7 +31,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   if (!user) return null;
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#07081a] text-[#f2f1fa] relative overflow-x-hidden selection:bg-[#22ffb4]/30 selection:text-[#22ffb4]">
+    <div className="min-h-screen flex flex-col relative overflow-x-hidden selection:bg-[#22ffb4]/30 selection:text-[#22ffb4] transition-colors duration-200">
       <div className="ambient-glow -z-10" />
       <AppHeader />
       <main className="flex-1 pb-28">{children}</main>

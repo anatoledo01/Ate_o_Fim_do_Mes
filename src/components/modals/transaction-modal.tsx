@@ -54,8 +54,8 @@ export function TransactionModal({ isOpen, onClose, defaultType = 'expense' }: T
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-md animate-fade-in">
-      <div className="tech-card w-full max-w-md p-6 border border-white/10 bg-[#0c0d24]/95 shadow-[0_25px_80px_rgba(0,0,0,0.85)] relative overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-md animate-fade-in">
+      <div className="tech-card tech-modal-card w-full max-w-md p-6 border border-white/10 shadow-2xl relative overflow-hidden">
         {/* Glow accent */}
         <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#22ffb4] to-transparent opacity-60" />
 
@@ -68,14 +68,14 @@ export function TransactionModal({ isOpen, onClose, defaultType = 'expense' }: T
           </div>
           <button
             onClick={onClose}
-            className="rounded-xl p-2 text-slate-400 hover:bg-white/10 hover:text-white transition"
+            className="rounded-xl p-2 text-slate-400 hover:bg-white/10 hover:text-white transition cursor-pointer"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
 
         {/* Type toggle buttons */}
-        <div className="mt-4 grid grid-cols-2 gap-2 p-1 bg-[#07081a] border border-white/5 rounded-xl">
+        <div className="mt-4 grid grid-cols-2 gap-2 p-1 tech-toggle-group rounded-xl border border-white/5">
           <button
             type="button"
             onClick={() => setType('expense')}
@@ -126,7 +126,7 @@ export function TransactionModal({ isOpen, onClose, defaultType = 'expense' }: T
                 onChange={(e) => setAmountStr(formatCurrencyInput(e.target.value))}
                 placeholder="0,00"
                 autoFocus
-                className="w-full h-12 rounded-xl border border-white/10 bg-[#07081a] pl-11 pr-4 text-lg font-bold font-mono text-white placeholder:text-slate-600 focus:border-[#22ffb4] focus:outline-hidden transition"
+                className="w-full h-12 rounded-xl border border-white/10 tech-input pl-11 pr-4 text-lg font-bold font-mono text-white placeholder:text-slate-500 focus:border-[#22ffb4] focus:outline-hidden transition"
               />
             </div>
           </div>
@@ -141,7 +141,7 @@ export function TransactionModal({ isOpen, onClose, defaultType = 'expense' }: T
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Ex: Almoço, Farmácia, Combustível"
-              className="w-full h-11 rounded-xl border border-white/10 bg-[#07081a] px-3.5 text-xs text-white placeholder:text-slate-600 focus:border-[#22ffb4] focus:outline-hidden transition"
+              className="w-full h-11 rounded-xl border border-white/10 tech-input px-3.5 text-xs text-white placeholder:text-slate-500 focus:border-[#22ffb4] focus:outline-hidden transition"
             />
           </div>
 
@@ -153,7 +153,7 @@ export function TransactionModal({ isOpen, onClose, defaultType = 'expense' }: T
             <select
               value={categoryId}
               onChange={(e) => setCategoryId(e.target.value)}
-              className="w-full h-11 rounded-xl border border-white/10 bg-[#07081a] px-3.5 text-xs text-white focus:border-[#22ffb4] focus:outline-hidden transition [&>option]:bg-[#0c0d24] [&>option]:text-white"
+              className="w-full h-11 rounded-xl border border-white/10 tech-input px-3.5 text-xs text-white focus:border-[#22ffb4] focus:outline-hidden transition"
             >
               {categories.map((c) => (
                 <option key={c.id} value={c.id}>
@@ -172,7 +172,7 @@ export function TransactionModal({ isOpen, onClose, defaultType = 'expense' }: T
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="w-full h-11 rounded-xl border border-white/10 bg-[#07081a] px-3.5 text-xs font-mono text-white focus:border-[#22ffb4] focus:outline-hidden transition"
+              className="w-full h-11 rounded-xl border border-white/10 tech-input px-3.5 text-xs font-mono text-white focus:border-[#22ffb4] focus:outline-hidden transition"
             />
           </div>
 
@@ -186,7 +186,7 @@ export function TransactionModal({ isOpen, onClose, defaultType = 'expense' }: T
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Ex: Cartão de débito, comprovante salvo"
-              className="w-full h-11 rounded-xl border border-white/10 bg-[#07081a] px-3.5 text-xs text-white placeholder:text-slate-600 focus:border-[#22ffb4] focus:outline-hidden transition"
+              className="w-full h-11 rounded-xl border border-white/10 tech-input px-3.5 text-xs text-white placeholder:text-slate-500 focus:border-[#22ffb4] focus:outline-hidden transition"
             />
           </div>
 
@@ -201,7 +201,7 @@ export function TransactionModal({ isOpen, onClose, defaultType = 'expense' }: T
             </button>
             <button
               type="submit"
-              className="rounded-xl bg-[#22ffb4] px-5 py-2 text-xs font-mono font-bold text-[#05060f] transition hover:bg-[#34ffbf] hover:shadow-[0_0_20px_rgba(34,255,180,0.4)] active:scale-98"
+              className="rounded-xl btn-pay-action px-5 py-2 text-xs font-mono font-bold transition active:scale-98 cursor-pointer"
             >
               Confirmar Registro
             </button>

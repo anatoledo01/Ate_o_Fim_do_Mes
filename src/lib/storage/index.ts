@@ -532,7 +532,7 @@ export const StorageRepository = {
     }
     const accounts = this.getRegisteredAccounts();
     if (accounts[normalizedEmail] && !overwrite) {
-      return { error: 'Este e-mail já está cadastrado. Faça login na sua conta.' };
+      return { error: 'Não é possível cadastrar com este e-mail. Esta conta já existe. Por favor, faça login.' };
     }
     const existingUserId = accounts[normalizedEmail]?.userId;
     const userId = customUserId || existingUserId || ('usr_' + Math.random().toString(36).substring(2, 10));
@@ -552,13 +552,13 @@ export const StorageRepository = {
     const normalizedEmail = email.toLowerCase().trim();
     const account = this.findRegisteredAccount(normalizedEmail);
     if (!account) {
-      return { error: 'E-mail não encontrado. Por favor, crie uma conta antes de entrar.' };
+      return { error: 'E-mail ou senha inválidos.' };
     }
     if (!password) {
-      return { error: 'Por favor, informe sua senha.' };
+      return { error: 'E-mail ou senha inválidos.' };
     }
     if (account.passwordHash !== btoa(password)) {
-      return { error: 'Senha incorreta. Tente novamente.' };
+      return { error: 'E-mail ou senha inválidos.' };
     }
     return { account };
   },

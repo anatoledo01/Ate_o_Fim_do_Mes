@@ -21,6 +21,7 @@ export interface UserProfile {
   email: string;
   displayName: string;
   avatarUrl?: string;
+  theme?: 'dark' | 'light';
   isOnboarded: boolean;
   createdAt: string;
 }
