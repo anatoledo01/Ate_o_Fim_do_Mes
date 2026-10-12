@@ -382,7 +382,7 @@ export default function DashboardPage() {
             onClick={() => setBillsTab('pending')}
             className={`rounded-full px-3 py-1 text-xs font-semibold transition cursor-pointer ${
               billsTab === 'pending'
-                ? 'bg-[#121324] text-white dark:bg-white dark:text-slate-900'
+                ? 'bg-[#121324] text-white keep-white tab-pill-active dark:bg-white dark:text-slate-900'
                 : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-white/5 dark:text-slate-400'
             }`}
           >
@@ -393,7 +393,7 @@ export default function DashboardPage() {
             onClick={() => setBillsTab('paid')}
             className={`rounded-full px-3 py-1 text-xs font-semibold transition cursor-pointer ${
               billsTab === 'paid'
-                ? 'bg-[#121324] text-white dark:bg-white dark:text-slate-900'
+                ? 'bg-[#121324] text-white keep-white tab-pill-active dark:bg-white dark:text-slate-900'
                 : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-white/5 dark:text-slate-400'
             }`}
           >

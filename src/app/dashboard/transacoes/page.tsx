@@ -127,7 +127,7 @@ export default function TransacoesPage() {
           onClick={() => setTypeFilter('all')}
           className={`px-4 py-1.5 rounded-full text-xs font-semibold transition cursor-pointer ${
             typeFilter === 'all'
-              ? 'bg-[#121324] text-white dark:bg-white dark:text-slate-900 shadow-xs'
+              ? 'bg-[#121324] text-white keep-white tab-pill-active dark:bg-white dark:text-slate-900 shadow-xs'
               : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-white/5 dark:text-slate-400'
           }`}
         >
@@ -138,7 +138,7 @@ export default function TransacoesPage() {
           onClick={() => setTypeFilter('income')}
           className={`px-4 py-1.5 rounded-full text-xs font-semibold transition cursor-pointer ${
             typeFilter === 'income'
-              ? 'bg-[#121324] text-white dark:bg-white dark:text-slate-900 shadow-xs'
+              ? 'bg-[#121324] text-white keep-white tab-pill-active dark:bg-white dark:text-slate-900 shadow-xs'
               : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-white/5 dark:text-slate-400'
           }`}
         >
@@ -149,7 +149,7 @@ export default function TransacoesPage() {
           onClick={() => setTypeFilter('expense')}
           className={`px-4 py-1.5 rounded-full text-xs font-semibold transition cursor-pointer ${
             typeFilter === 'expense'
-              ? 'bg-[#121324] text-white dark:bg-white dark:text-slate-900 shadow-xs'
+              ? 'bg-[#121324] text-white keep-white tab-pill-active dark:bg-white dark:text-slate-900 shadow-xs'
               : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-white/5 dark:text-slate-400'
           }`}
         >

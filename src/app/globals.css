@@ -630,9 +630,16 @@ html.light .tech-toggle-group {
 }
 
 /* Text & Accent Adaptations in Light Mode */
-html.light .text-white:not(.keep-white):not(.hero-navy-card *):not(.btn-pill-dark *) {
-  color: #0f1021 !important;
+html.light .text-white,
+html.dark .text-white,
+.text-white,
+.tab-pill-active,
+button.bg-\[\#121324\],
+.bg-\[\#121324\].text-white,
+.btn-pill-dark {
+  color: #ffffff !important;
 }
+
 html.light .keep-white,
 html.light .hero-navy-card,
 html.light .hero-navy-card h1,

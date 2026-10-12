@@ -118,7 +118,7 @@ export default function ContasPage() {
           onClick={() => setActiveTab('pending')}
           className={`px-4 py-1.5 rounded-full text-xs font-semibold transition cursor-pointer ${
             activeTab === 'pending'
-              ? 'bg-[#121324] text-white dark:bg-white dark:text-slate-900 shadow-xs'
+              ? 'bg-[#121324] text-white keep-white tab-pill-active dark:bg-white dark:text-slate-900 shadow-xs'
               : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-white/5 dark:text-slate-400'
           }`}
         >
@@ -129,7 +129,7 @@ export default function ContasPage() {
           onClick={() => setActiveTab('paid')}
           className={`px-4 py-1.5 rounded-full text-xs font-semibold transition cursor-pointer ${
             activeTab === 'paid'
-              ? 'bg-[#121324] text-white dark:bg-white dark:text-slate-900 shadow-xs'
+              ? 'bg-[#121324] text-white keep-white tab-pill-active dark:bg-white dark:text-slate-900 shadow-xs'
               : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-white/5 dark:text-slate-400'
           }`}
         >
@@ -140,7 +140,7 @@ export default function ContasPage() {
           onClick={() => setActiveTab('all')}
           className={`px-4 py-1.5 rounded-full text-xs font-semibold transition cursor-pointer ${
             activeTab === 'all'
-              ? 'bg-[#121324] text-white dark:bg-white dark:text-slate-900 shadow-xs'
+              ? 'bg-[#121324] text-white keep-white tab-pill-active dark:bg-white dark:text-slate-900 shadow-xs'
               : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-white/5 dark:text-slate-400'
           }`}
         >
