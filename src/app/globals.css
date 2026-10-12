@@ -781,4 +781,15 @@ html.light input[type="date"]::-webkit-calendar-picker-indicator {
   filter: none;
 }
 
+/* Persistent Fixed Bottom Navigation Bar */
+.bottom-nav-fixed {
+  position: fixed !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  z-index: 50 !important;
+  transform: translateZ(0) !important;
+  -webkit-transform: translateZ(0) !important;
+}
+
 

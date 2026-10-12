@@ -23,8 +23,19 @@ export function CurvedNavBar() {
   const pathname = usePathname();
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-[#121324]/95 backdrop-blur-md border-t border-slate-200/80 dark:border-slate-800 transition-colors">
-      <nav className="max-w-md mx-auto grid grid-cols-5 h-16 items-center px-1">
+    <div
+      className="bottom-nav-fixed fixed bottom-0 left-0 right-0 z-50 bg-white/95 dark:bg-[#121324]/95 backdrop-blur-md border-t border-slate-200/80 dark:border-slate-800 transition-colors shadow-[0_-4px_20px_rgba(0,0,0,0.04)]"
+      style={{
+        position: 'fixed',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        zIndex: 50,
+        transform: 'translateZ(0)',
+        WebkitTransform: 'translateZ(0)',
+      }}
+    >
+      <nav className="max-w-md mx-auto grid grid-cols-5 h-16 items-center px-1 pb-[env(safe-area-inset-bottom,0px)]">
         {NAV_ITEMS.map((item) => {
           const Icon = item.icon;
           const isActive =
@@ -63,4 +74,3 @@ export function CurvedNavBar() {
     </div>
   );
 }
-
